@@ -43,22 +43,23 @@ end
 
 Cl_alpha = linspace(0,0,length(alpha));
 for index = 1:(length(Cl)-4)  %1/deg
-    cla1 = (Cl(index+1) - Cl(index))/(alpha(index+1) - alpha(index)); disp(cla1);disp(alpha(index));
+    cla1 = (Cl(index+1) - Cl(index))/(alpha(index+1) - alpha(index));
     cla2 = (Cl(index+2) - Cl(index))/(alpha(index+2) - alpha(index));
     cla3 = (Cl(index+3) - Cl(index))/(alpha(index+3) - alpha(index));
     cla4 = (Cl(index+4) - Cl(index))/(alpha(index+4) - alpha(index));
     Cl_alpha(index) = mean([cla1 cla2 cla3 cla4]);
     
 end
-
+%% Add fixed code here. 
 Cl_alpha(length(alpha)) = Cl_alpha(length(alpha)-1);
 
 Cl_alpha_rad    = Cl_alpha*180/pi;
 CL_alpha_rad    = Cl_alpha_rad./(1 + Cl_alpha_rad./(pi*AR*e)); 
 CL              = CL_alpha_rad.*rot90(alpha).*pi./180;
-plot(alpha,Cl_alpha)
-figure
-plot(alpha,Cl)
+
+% polyfit(alpha(340:389), Cl(340:389),3) 
+% From here, use polyfit to get coeffcients for Cl_alpha, then update
+% Cl_alpha terms and compute CL_alpha, check rest of code for errors after.
 % 
 % 
 % CD_i            = CL.^2./(pi*AR*e); 
