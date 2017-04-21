@@ -194,6 +194,3 @@ for index = 1:length(Cx_vec)
     figure; plot(y,momentx(:,index)); title('PHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
     
 end
-
-
-
