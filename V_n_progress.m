@@ -22,11 +22,11 @@ e = 0.79;       % []
 
 xfoil_results = dlmread('naca2412_2.pol');
 %xfoil_results = dlmread('dat_data.pol');
-Cl      = zeros(length(xfoil_results),1);
-alpha   = zeros(length(xfoil_results),1);
-Cd      = zeros(length(xfoil_results),1);
-Cdp     = zeros(length(xfoil_results),1);
-Cm      = zeros(length(xfoil_results),1);
+Cl      = rot90(zeros(length(xfoil_results),1));
+alpha   = rot90(zeros(length(xfoil_results),1));
+Cd      = rot90(zeros(length(xfoil_results),1));
+Cdp     = rot90(zeros(length(xfoil_results),1));
+Cm      = rot90(zeros(length(xfoil_results),1));
 min_diff_index  = 1; 
 
 index2 = 1;
@@ -41,119 +41,122 @@ for index = 1:length(xfoil_results)
     Cm(index)      = xfoil_results(index,5);
 end
 
-Cl_alpha = linspace(0,0,length(alpha));
-for index = 1:(length(Cl)-4)  %1/deg
-    cla1 = (Cl(index+1) - Cl(index))/(alpha(index+1) - alpha(index));
-    cla2 = (Cl(index+2) - Cl(index))/(alpha(index+2) - alpha(index));
-    cla3 = (Cl(index+3) - Cl(index))/(alpha(index+3) - alpha(index));
-    cla4 = (Cl(index+4) - Cl(index))/(alpha(index+4) - alpha(index));
-    Cl_alpha(index) = mean([cla1 cla2 cla3 cla4]);
-    
-end
+Cl_alpha        = polyfit(alpha(200:300),Cl(200:300),1);
+Cl_alpha        = Cl_alpha(1);
+%% Attempt to Concert Numerical answer to polynomila for smoothing
+% Cl_coeff        = polyfit(alpha, Cl, 6); 
+% Cl_new          = Cl_coeff(1).*alpha.^6 +Cl_coeff(2).*alpha.^5 +Cl_coeff(3).*alpha.^4 + ...
+%                     Cl_coeff(4).*alpha.^3 + Cl_coeff(5).*alpha.^2 + Cl_coeff(6).*alpha.^1 + ...
+%                         Cl_coeff(7);    
+%% Numerical integration for all Cl_alpha
+% for index = 1:(length(Cl_alpha)-1)
+%     Cl_alpha(index) = (Cl(index+1) - Cl(index))/(alpha(index+1) - alpha(index)); 
+% end
+
+
 %% Add fixed code here. 
-Cl_alpha(length(alpha)) = Cl_alpha(length(alpha)-1);
 
 Cl_alpha_rad    = Cl_alpha*180/pi;
 CL_alpha_rad    = Cl_alpha_rad./(1 + Cl_alpha_rad./(pi*AR*e)); 
-CL              = CL_alpha_rad.*rot90(alpha).*pi./180;
+CL              = CL_alpha_rad.*(alpha).*pi./180;
 
-% polyfit(alpha(340:389), Cl(340:389),3) 
+
+
 % From here, use polyfit to get coeffcients for Cl_alpha, then update
 % Cl_alpha terms and compute CL_alpha, check rest of code for errors after.
-% 
-% 
-% CD_i            = CL.^2./(pi*AR*e); 
-% CD_p            = Cd(min_diff_index);  % 0 drag Coefficient: This is the drag coefficient from where CL = 0;
-% CD              = (CD_i + CD_p); 
-% mu_2            = 2*(W/S)/(rho*g*c*CL_alpha_rad);
-% 
-% 
-% Cn              = CL.*cosd(alpha) + CD.*sind(alpha);
-% Cx              = CD.*cosd(alpha) - CL.*sind(alpha);
-% plot(alpha,Cl)
-% 
-% Cn_alpha_rad    = (Cn(floor(length(CL)/2+2)) - Cn(floor(length(CL)/2)-2))/ ...
-%                     (alpha(floor(length(CL)/2)+2) - alpha((floor(length(CL)/2)-2)));
-% 
-% 
-% [Cn_max,max_index] = max(Cn);
-% [Cn_min,min_index] = min(Cn);
-% 
-% 
-% Cz_max = Cn_max;            %rough estimate for now
-% Cz_neg = Cn_min;            %rough estimate for now
-% kg     = 0.88*mu_2/(5.3+mu_2);
-% % Cz     = 2*W/(rho*Vc^2*S); 
-% Cza    = Cn_alpha_rad;               % Lift curve slope
-% 
-% 
-% v = 0:270; %mph
-% vfps = v*5280/3600; %fps
-% n_lift = (0.5*rho*S*Cz_max/W).*vfps.^2.*1.25;
-% n_neg =  (0.5*rho*S*Cz_neg/W).*vfps.^2;
-% 
-% 
-% lim_load_plus = 4.4;
-% lim_load_minus = -1.76;
-% 
-% 
-% 
-% g_50_plus = 1+kg*rho*50*Cza*S/(2*W).*vfps;
-% g_30_plus = 1+kg*rho*30*Cza*S/(2*W).*vfps;
-% g_50_minus = 1-kg*rho*50*Cza*S/(2*W).*vfps;
-% g_30_minus = 1-kg*rho*30*Cza*S/(2*W).*vfps;
-% 
-% 
-% figure; grid on; hold on;set(gcf,'color',[1 1 1]);
-% 
-% tempInd = find(n_lift<lim_load_plus); plot(v(tempInd),n_lift(tempInd),'linewidth',2); 
-% tempInd = find(n_neg>lim_load_minus); plot(v(tempInd),n_neg(tempInd),'linewidth',2);
-% 
-% tempInd = find(n_lift>lim_load_plus,1); plot([v(tempInd) v(end)],[lim_load_plus lim_load_plus],'linewidth',2);
-% 
-% tempInd = find(n_neg<lim_load_minus,1); plot([v(tempInd) Vc],[lim_load_minus lim_load_minus],'linewidth',2);
-% 
-% plot([Vd Vd],[-1 lim_load_plus],'linewidth',2)
-% plot([Vc Vd],[lim_load_minus -1],'linewidth',2)
-% plot(v(1:230),g_50_plus(1:230),'--g','linewidth',2)
-% plot(v(1:270),g_30_plus(1:270),'--g','linewidth',2)
-% plot(v(1:230),g_50_minus(1:230),'--g','linewidth',2)
-% plot(v(1:270),g_30_minus(1:270),'--g','linewidth',2)
-% plot([Vc Vd],[g_50_plus(230) g_30_plus(270)],'--g','linewidth',2)
-% plot([Vc Vd],[g_50_minus(230) g_30_minus(270)],'--g','linewidth',2)
-% 
-% 
-% 
-% plot([230 230],[lim_load_minus lim_load_plus],'--r','linewidth',1)
-% xlabel('V (mph)','fontsize',16,'fontweight','bold');ylabel('n','fontsize',16,'fontweight','bold')
-% set(gca,'FontSize',16,'fontweight','bold');
-% ylim([-4 6])
-% 
-% 
-% 
-% %% Critical Points
-% 
-% n_vec   = [lim_load_plus max(g_50_plus) lim_load_plus min(g_30_minus) min(g_50_minus) -1.76];
-% v_vec   = [v(find(n_lift>lim_load_plus,1)) Vc v(end) Vd Vc v(find(n_neg<lim_load_minus,1))]*5280/3600; % [fps]
-% Cn_vec  = 2.*n_vec.*W./(rho.*v_vec.^2.*S);
-% 
-% current_diff_index = 1;
-% Cx_pos = linspace(0,0,6);
-% for index1 = 1:length(v_vec)
-%     current_Cn = Cn_vec(index1);
-%     current_diff = 100; 
-%     current_diff_index = 1;
-%     for index2 = 1:length(Cn)
-%         if (abs((current_Cn - Cn(index2))) < current_diff)
-%             current_diff_index = index2; 
-%             current_diff = abs((current_Cn - Cn(index2)));
-%         end
-%     end
-%     Cx_pos(index1) = current_diff_index;
-% end
-% 
-% Cx_vec = rot90(Cx(Cx_pos));
-% 
-% Fz      = n_vec.*W;          % [lb]
-% Fx      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
-% 
+
+
+CD_i            = CL.^2./(pi*AR*e); 
+CD_p            = Cd(min_diff_index);  % 0 drag Coefficient: This is the drag coefficient from where CL = 0;
+CD              = (CD_i + CD_p); 
+mu_2            = 2*(W/S)/(rho*g*c*CL_alpha_rad);
+
+
+Cn              = CL.*cosd(alpha) + CD.*sind(alpha);
+Cx              = CD.*cosd(alpha) - CL.*sind(alpha);
+
+Cn_alpha_rad    = 180/pi*((Cn(floor(length(CL)/2+2)) - Cn(floor(length(CL)/2)-2))/ ...
+                    (alpha(floor(length(CL)/2)+2) - alpha((floor(length(CL)/2)-2))));
+
+
+[Cn_max,max_index] = max(Cn);
+[Cn_min,min_index] = min(Cn);
+
+
+Cz_max = Cn_max;            %rough estimate for now
+Cz_neg = Cn_min;            %rough estimate for now
+kg     = 0.88*mu_2/(5.3+mu_2);
+% Cz     = 2*W/(rho*Vc^2*S); 
+Cza    = Cn_alpha_rad;               % Lift curve slope
+
+
+v = 0:270; %mph
+vfps = v*5280/3600; %fps
+n_lift = (0.5*rho*S*Cz_max/W).*vfps.^2.*1.25;
+n_neg =  (0.5*rho*S*Cz_neg/W).*vfps.^2;
+
+
+lim_load_plus = 4.4;
+lim_load_minus = -1.76;
+
+
+
+g_50_plus = 1+kg*rho*50*Cza*S/(2*W).*vfps;
+g_30_plus = 1+kg*rho*30*Cza*S/(2*W).*vfps;
+g_50_minus = 1-kg*rho*50*Cza*S/(2*W).*vfps;
+g_30_minus = 1-kg*rho*30*Cza*S/(2*W).*vfps;
+
+
+figure; grid on; hold on;set(gcf,'color',[1 1 1]);
+
+tempInd = find(n_lift<lim_load_plus); plot(v(tempInd),n_lift(tempInd),'linewidth',2); 
+tempInd = find(n_neg>lim_load_minus); plot(v(tempInd),n_neg(tempInd),'linewidth',2);
+
+tempInd = find(n_lift>lim_load_plus,1); plot([v(tempInd) v(end)],[lim_load_plus lim_load_plus],'linewidth',2);
+
+tempInd = find(n_neg<lim_load_minus,1); plot([v(tempInd) Vc],[lim_load_minus lim_load_minus],'linewidth',2);
+
+plot([Vd Vd],[-1 lim_load_plus],'linewidth',2)
+plot([Vc Vd],[lim_load_minus -1],'linewidth',2)
+plot(v(1:230),g_50_plus(1:230),'--g','linewidth',2)
+plot(v(1:270),g_30_plus(1:270),'--g','linewidth',2)
+plot(v(1:230),g_50_minus(1:230),'--g','linewidth',2)
+plot(v(1:270),g_30_minus(1:270),'--g','linewidth',2)
+plot([Vc Vd],[g_50_plus(230) g_30_plus(270)],'--g','linewidth',2)
+plot([Vc Vd],[g_50_minus(230) g_30_minus(270)],'--g','linewidth',2)
+
+
+
+plot([230 230],[lim_load_minus lim_load_plus],'--r','linewidth',1)
+xlabel('V (mph)','fontsize',16,'fontweight','bold');ylabel('n','fontsize',16,'fontweight','bold')
+set(gca,'FontSize',16,'fontweight','bold');
+ylim([-4 6])
+
+
+
+%% Critical Points
+
+n_vec   = [lim_load_plus max(g_50_plus) lim_load_plus min(g_30_minus) min(g_50_minus) -1.76];
+v_vec   = [v(find(n_lift>lim_load_plus,1)) Vc v(end) Vd Vc v(find(n_neg<lim_load_minus,1))]*5280/3600; % [fps]
+Cn_vec  = 2.*n_vec.*W./(rho.*v_vec.^2.*S);
+
+current_diff_index = 1;
+Cx_pos = linspace(0,0,6);
+for index1 = 1:length(v_vec)
+    current_Cn = Cn_vec(index1);
+    current_diff = 100; 
+    current_diff_index = 1;
+    for index2 = 1:length(Cn)
+        if (abs((current_Cn - Cn(index2))) < current_diff)
+            current_diff_index = index2; 
+            current_diff = abs((current_Cn - Cn(index2)));
+        end
+    end
+    Cx_pos(index1) = current_diff_index;
+end
+
+Cx_vec = (Cx(Cx_pos));
+
+Fz      = n_vec.*W;          % [lb]
+Fx      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
+
