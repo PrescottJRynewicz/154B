@@ -58,7 +58,8 @@ Cl_alpha        = Cl_alpha(1);
 
 Cl_alpha_rad    = Cl_alpha*180/pi;
 CL_alpha_rad    = Cl_alpha_rad./(1 + Cl_alpha_rad./(pi*AR*e)); 
-CL              = CL_alpha_rad.*(alpha).*pi./180;
+% CL              = CL_alpha_rad.*(alpha).*pi./180;
+CL              = CL_alpha_rad/Cl_alpha_rad*Cl;
 
 
 
