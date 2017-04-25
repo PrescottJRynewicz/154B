@@ -29,8 +29,6 @@ Cdp     = rot90(zeros(length(xfoil_results),1));
 Cm      = rot90(zeros(length(xfoil_results),1));
 min_diff_index  = 1; 
 
-
-
 index2 = 1;
 for index = 1:length(xfoil_results)
     alpha(index)        = xfoil_results(index,1);   % Pull data from xFoil Results txt file. 
@@ -42,7 +40,6 @@ for index = 1:length(xfoil_results)
     Cdp(index)          = xfoil_results(index,4);
     Cm(index)           = xfoil_results(index,5);
 end
-
 
 %% 2D to 3D Calcs
 Cl_alpha                = polyfit(alpha(150:250),...% Get slope of linear portion of Cl. 
@@ -67,31 +64,24 @@ Cn_alpha_rad            = Cn_alpha_rad(1)*180/pi;
 [Cn_max,max_index]      = max(Cn);
 [Cn_min,min_index]      = min(Cn);
 
-
-
 %% Dr. Toohey's Code
 Cz_max                  = Cn_max;                   %rough estimate for now
 Cz_neg                  = Cn_min;                   %rough estimate for now
 kg                      = 0.88*mu_2/(5.3+mu_2);
 Cza                     = Cn_alpha_rad;             % Lift curve slope
 
-
 v                       = 0:270;                    % [mph]
 vfps                    = v*5280/3600;              % [fps]
 n_lift                  = (0.5*rho*S*Cz_max/W).*vfps.^2.*1.25;
 n_neg                   =  (0.5*rho*S*Cz_neg/W).*vfps.^2;
 
-
 lim_load_plus           = 4.4;
 lim_load_minus          = -1.76;
-
-
 
 g_50_plus               = 1+kg*rho*50*Cza*S/(2*W).*vfps;
 g_30_plus               = 1+kg*rho*30*Cza*S/(2*W).*vfps;
 g_50_minus              = 1-kg*rho*50*Cza*S/(2*W).*vfps;
 g_30_minus              = 1-kg*rho*30*Cza*S/(2*W).*vfps;
-
 
 figure; grid on; hold on;set(gcf,'color',[1 1 1]);
 
@@ -111,13 +101,10 @@ plot(v(1:270),g_30_minus(1:270),'--g','linewidth',2)
 plot([Vc Vd],[g_50_plus(230) g_30_plus(270)],'--g','linewidth',2)
 plot([Vc Vd],[g_50_minus(230) g_30_minus(270)],'--g','linewidth',2)
 
-
-
 plot([230 230],[lim_load_minus lim_load_plus],'--r','linewidth',1)
 xlabel('V (mph)','fontsize',16,'fontweight','bold');ylabel('n','fontsize',16,'fontweight','bold')
 set(gca,'FontSize',16,'fontweight','bold');
 ylim([-4 6])
-
 
 
 %% Critical Points
@@ -143,12 +130,6 @@ end
 
 Cx_vec                  = (Cx(Cx_pos));
 
-% Fz      = n_vec.*W;          % [lb]
-% Fx      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
-% disp(Fx)
-% disp(Fz)
-
-
 %% Code to calc lift distribution, Shear and Bending Moments
 
 y                       =0:0.01:b/2;
@@ -159,9 +140,6 @@ shearx                  = zeros(length_y,length(Cx_vec));
 momentx                 = zeros(length_y,length(Cx_vec));
 shearz                  = zeros(length_y,length(Cx_vec)); 
 momentz                 = zeros(length_y,length(Cx_vec));
-
-
-
 
 for index=1:length(Cx_vec)
     n                   =n_vec(index);
@@ -182,13 +160,10 @@ for index=1:length(Cx_vec)
     momentz(:,index)    =-cumsum(shearz(:,index));
 end
 
-
-
 %% Plots 
 
 title_list              = {'PHAA';'50 fps Positive Gust';'PLAA'; '30 fps Negative Gust'; '50 fps Negative Fust'; 'NHAA'}; 
 end_tag                 = {'  F_z Distribution'; ' V_z Distribution'; ' M_z Distribution'; ' F_x Distribution'; ' V_x Distribution'; ' Moment_z Distribution'};
-
 
 for index = 1:length(Cx_vec)
     if index == 1
@@ -233,6 +208,5 @@ for index = 1:length(Cx_vec)
         figure; plot(y,Fx(:,index)); title('NHAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
         figure; plot(y,shearx(:,index)); title('NHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
         figure; plot(y,momentx(:,index)); title('NHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-
     end
 end
