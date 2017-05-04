@@ -131,8 +131,8 @@ end
 Cx_vec                  = (Cx(Cx_pos));
 
 % Critical Points
-%Fz      = n_vec.*W;          % [lb]
-%Fx      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
+Fz_crit      = n_vec.*W;          % [lb]
+Fx_crit      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
 
 %% Code to calc lift distribution, Shear and Bending Moments
 
