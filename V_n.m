@@ -21,7 +21,6 @@ Re = Vc*c/mu;   % []
 e = 0.79;       % []
 
 xfoil_results = dlmread('naca2412_2.pol');
-xfoil_results = dlmread('dat_data.pol');
 Cl      = zeros(length(xfoil_results),1);
 alpha   = zeros(length(xfoil_results),1);
 Cd      = zeros(length(xfoil_results),1);

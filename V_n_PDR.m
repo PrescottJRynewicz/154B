@@ -130,6 +130,10 @@ end
 
 Cx_vec                  = (Cx(Cx_pos));
 
+% Critical Points
+%Fz      = n_vec.*W;          % [lb]
+%Fx      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
+
 %% Code to calc lift distribution, Shear and Bending Moments
 
 y                       =0:0.01:b/2;
@@ -162,51 +166,49 @@ end
 
 %% Plots 
 
-title_list              = {'PHAA';'50 fps Positive Gust';'PLAA'; '30 fps Negative Gust'; '50 fps Negative Fust'; 'NHAA'}; 
-end_tag                 = {'  F_z Distribution'; ' V_z Distribution'; ' M_z Distribution'; ' F_x Distribution'; ' V_x Distribution'; ' Moment_z Distribution'};
 
-for index = 1:length(Cx_vec)
-    if index == 1
-        figure; plot(y,Fz(:,index)); title('PHAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('PHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('PHAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('PHAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('PHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('PHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-    elseif index == 2
-        figure; plot(y,Fz(:,index)); title('50 fps Positive Gust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('50 fps Positive Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('50 fps Positive Gust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('50 fps Positive Gust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('50 fps Positive Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('50 fps Positive Gust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)'); 
-    elseif index == 3
-        figure; plot(y,Fz(:,index)); title('PLAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('PLAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('PLAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('PLAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('PLAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('PLAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-    elseif index == 4
-        figure; plot(y,Fz(:,index)); title('30 fps Negative Gust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('30 fps Negative Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('30 fps Negative Gust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('30 fps Negative Gust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('30 fps Negative Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('30 fps Negative Gust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-    elseif index == 5
-        figure; plot(y,Fz(:,index)); title('50 fps Negative Fust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('50 fps Negative Fust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('50 fps Negative Fust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('50 fps Negative Fust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('PHA50 fps Negative FustA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('50 fps Negative Fust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-    elseif index == 6
-        figure; plot(y,Fz(:,index)); title('NHAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearz(:,index)); title('NHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentz(:,index)); title('NHAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-        figure; plot(y,Fx(:,index)); title('NHAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,shearx(:,index)); title('NHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
-        figure; plot(y,momentx(:,index)); title('NHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
-    end
-end
+% for index = 1:length(Cx_vec)
+%     if index == 1
+%         figure; plot(y,Fz(:,index)); title('PHAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('PHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('PHAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('PHAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('PHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('PHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%     elseif index == 2
+%         figure; plot(y,Fz(:,index)); title('50 fps Positive Gust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('50 fps Positive Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('50 fps Positive Gust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('50 fps Positive Gust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('50 fps Positive Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('50 fps Positive Gust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)'); 
+%     elseif index == 3
+%         figure; plot(y,Fz(:,index)); title('PLAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('PLAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('PLAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('PLAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('PLAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('PLAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%     elseif index == 4
+%         figure; plot(y,Fz(:,index)); title('30 fps Negative Gust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('30 fps Negative Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('30 fps Negative Gust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('30 fps Negative Gust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('30 fps Negative Gust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('30 fps Negative Gust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%     elseif index == 5
+%         figure; plot(y,Fz(:,index)); title('50 fps Negative Fust F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('50 fps Negative Fust V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('50 fps Negative Fust Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('50 fps Negative Fust F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('PHA50 fps Negative FustA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('50 fps Negative Fust M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%     elseif index == 6
+%         figure; plot(y,Fz(:,index)); title('NHAA F_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearz(:,index)); title('NHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentz(:,index)); title('NHAA Moment_z Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%         figure; plot(y,Fx(:,index)); title('NHAA F_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,shearx(:,index)); title('NHAA V_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Force (Lbs)');
+%         figure; plot(y,momentx(:,index)); title('NHAA M_x Distribution', 'FontSize',16);xlabel('Distace (ft)');ylabel('Moment (Lbs*ft)');
+%     end
+% end

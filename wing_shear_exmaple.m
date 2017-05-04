@@ -1,41 +1,10 @@
-%wing shear flow
-clear all;
-close all;
-% 
-% for wing_index=1:1000
-%     
-%     wings(wing_index).numTopStringers = round(rand*10)+10;
-%     wings(wing_index).numBottomStringers = round(rand*10)+10;
-%     wings(wing_index).frontSpar = 0.2;
-%     wings(wing_index).backSpar = 0.75;
-%     
-%     
-%     frontSpar = 0.2;
-%     backSpar = 0.75;
-% 
-% 
-%     sparCaps(1).posX = frontSpar;
-%     sparCaps(2).posX = frontSpar;
-%     sparCaps(3).posX = backSpar;
-%     sparCaps(4).posX = backSpar;
-%     
-%     sparCaps(1).posZ = get_z(frontSpar,1);
-%     sparCaps(2).posZ = get_z(frontSpar,0);
-%     sparCaps(3).posZ = get_z(backSpar,1);
-%     sparCaps(4).posZ = get_z(backSpar,0);
-%     
-%     wings(wing_index).sparCaps = sparCaps;
-%     
-%     %do all analysis
-%     
-%     %failure criteria
-%     
-% 
-%     %is good?
-%     
-%     
-%     
-% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Prescott Rynewicz, Jordan Robertson, Lukas Kramer
+% MAE 154B
+% Wing Analysis and Optimization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+close all; clear all; clc;
+
 
 %define a few 
 numTopStringers = 10;
@@ -168,10 +137,4 @@ plot([bottomStringers.posX],[bottomStringers.posZ],'or')
 plot([noseTopStringers.posX],[noseTopStringers.posZ],'or')
 plot([noseBottomStringers.posX],[noseBottomStringers.posZ],'or')
 plot(centroid.posX,centroid.posZ,'rx')
-
-
-
-
-
-
 
