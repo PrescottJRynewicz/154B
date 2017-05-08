@@ -13,10 +13,12 @@ close all; clear all; clc;
 
 %Spar Strcuture: Includes the location and area for each spar. Ordered
 %clockwise start from top left spar. 
-spar1       = struct('position',[0.20,0], 'area', 0); 
-spar2       = struct('position',[0.75,0], 'area', 0); 
-spar3       = struct('position',[0.75,0], 'area', 0); 
-spar4       = struct('position',[0.20,0], 'area', 0); 
+spar_pos_1  = 0.2; 
+spar_pos_2  = 0.75; 
+spar1       = struct('position',[spar_pos_1,0], 'area', 0); 
+spar2       = struct('position',[spar_pos_2,0], 'area', 0); 
+spar3       = struct('position',[spar_pos_1,0], 'area', 0); 
+spar4       = struct('position',[spar_pos_2,0], 'area', 0); 
 
 % Section Struct. Includes the number os stringers, where the section
 % start, the web thickness, and arrays of stringer and web objects. 
@@ -48,13 +50,24 @@ for index = 1:num_sections
     gap(index)      = (wing.sections(index).end_pos - wing.sections(index).start_pos)/(num_stringers(index)+1); 
 end
 
+
+%% Place all x, z and area values for all sections of wing. 
 for index1 = 1:num_sections
     for index2 = 1:num_stringers(index1)
         %% double check index1 = 2
         wing.sections(index1).stringers(index2,x_pos) = wing.sections(index1).start_pos + gap(index1)*index2;
-        wing.sections(index1).stringers(index2,z_pos) = get_z(wing.sections(index1).stringers(index2,x_pos),1);
+        wing.sections(index1).stringers(index2,z_pos) = get_z(wing.sections(index1).stringers(index2,x_pos),mod(index1,2));
         wing.sections(index1).stringers(index2,str_area) = 1; 
     end
 end
 
-%% Continue to follow code that Toohey gave us. 
+
+%% Place all spar z positions. This will not change, as there will always be 4 spars. 
+for index1 = 1:4
+    if index1 == 1 || index1 == 2
+        wing.spars(index1).position(2) = get_z(wing.spars(index1).position(1),1);
+    else
+        wing.spars(index1).position(2) = get_z(wing.spars(index1).position(1),0);
+    end
+end
+
