@@ -71,27 +71,4 @@ for index1 = 1:4
 end
 
 
-%% Centroid
-% 
-%     centroid_x=0;
-%     N=length(array(:,1));
-%     for k=1:N
-%         centroid_x=centroid_x+(array(k,1)*array(k,3));
-%     end
-%     area_sum=0;
-%     for k=1:N
-%         area_sum=area_sum+array(k,3);
-%     end
-%     x_c=centroid_x/area_sum;
-%     end
-%     function z_c=z_centroid(array)
-%     za_sum=0;
-%     N=length(array(:,1));
-%     for k=1:N
-%         za_sum=za_sum+(array(k,2)*array(k,3));
-%     end
-%     area_sum=0;
-%     for k=1:N
-%         area_sum=area_sum+array(k,3);
-%     end
-%     z_c=za_sum/area_sum;
+%% 
