@@ -1,49 +1,23 @@
 %wing shear flow
+clear all;
+close all;
 
-
-for wing_index=1:1000
-    
-    wings(wing_index).numTopStringers = round(rand*10)+10;
-    wings(wing_index).numBottomStringers = round(rand*10)+10;
-    wings(wing_index).frontSpar = 0.2;
-    wings(wing_index).backSpar = 0.75;
-    
-    
-    frontSpar = 0.2;
-    backSpar = 0.75;
-
-
-    sparCaps(1).posX = frontSpar;
-    sparCaps(2).posX = frontSpar;
-    sparCaps(3).posX = backSpar;
-    sparCaps(4).posX = backSpar;
-    
-    sparCaps(1).posZ = get_z(frontSpar,1);
-    sparCaps(2).posZ = get_z(frontSpar,0);
-    sparCaps(3).posZ = get_z(backSpar,1);
-    sparCaps(4).posZ = get_z(backSpar,0);
-    
-    wings(wing_index).sparCaps = sparCaps;
-    
-    %do all analysis
-    
-    %failure criteria
-    
-
-    %is good?
-    
-    
-    
-end
+% initial load:
+Vx = 1; Vz = 0;
 
 %define a few 
-numTopStringers = 10;
-numBottomStringers = 2;
-numNoseTopStringers = 2;
-numNoseBottomStringers = 2;
+numTopStringers = 5;
+numBottomStringers = 5;
+numNoseTopStringers = 3;
+numNoseBottomStringers = 3;
+
+t_upper = 0.02/12;
+t_lower = 0.02/12;
+t_upper_front = 0.02/12;
+t_lower_front = 0.02/12;
 
 frontSpar = 0.2;
-backSpar = 0.75;
+backSpar = 0.7;
 
 sparCaps(1).posX = frontSpar;
 sparCaps(2).posX = frontSpar;
@@ -113,22 +87,60 @@ centroid.posZ = sum([sparCaps.posZ].*[sparCaps.area]) + ...
 centroid.posZ = centroid.posZ / ( sum([sparCaps.area]) + sum([topStringers.area]) + ...
     sum([bottomStringers.area]) + sum([noseTopStringers.area]) + sum([noseBottomStringers.area]));
 
-%Ix = ...
-%Iz = ...
-%Ixz= ...
+%summing contributions for inertia terms
+Ix = 0; Iz = 0; Ixz = 0;
 
+for i=1:4 %spar caps
+    Ix = Ix + sparCaps(i).area*(sparCaps(i).posZ-centroid.posZ)^2;
+    Iz = Iz + sparCaps(i).area*(sparCaps(i).posX-centroid.posX)^2;
+    Ixz = Ixz + sparCaps(i).area*(sparCaps(i).posX-centroid.posX)*(sparCaps(i).posZ-centroid.posZ)^2;
+end
+for i=1:numTopStringers %top stringers
+    Ix = Ix + topStringers(i).area*(topStringers(i).posZ-centroid.posZ)^2;
+    Iz = Iz + topStringers(i).area*(topStringers(i).posX-centroid.posX)^2;
+    Ixz = Ixz + topStringers(i).area*(topStringers(i).posX-centroid.posX)*(topStringers(i).posZ-centroid.posZ)^2;
+end
+for i=1:numBottomStringers %top stringers
+    Ix = Ix + bottomStringers(i).area*(bottomStringers(i).posZ-centroid.posZ)^2;
+    Iz = Iz + bottomStringers(i).area*(bottomStringers(i).posX-centroid.posX)^2;
+    Ixz = Ixz + bottomStringers(i).area*(bottomStringers(i).posX-centroid.posX)*(bottomStringers(i).posZ-centroid.posZ)^2;
+end
+for i=1:numNoseTopStringers %top stringers
+    Ix = Ix + noseTopStringers(i).area*(noseTopStringers(i).posZ-centroid.posZ)^2;
+    Iz = Iz + noseTopStringers(i).area*(noseTopStringers(i).posX-centroid.posX)^2;
+    Ixz = Ixz + noseTopStringers(i).area*(noseTopStringers(i).posX-centroid.posX)*(noseTopStringers(i).posZ-centroid.posZ)^2;
+end
+for i=1:numNoseBottomStringers %top stringers
+    Ix = Ix + noseBottomStringers(i).area*(noseBottomStringers(i).posZ-centroid.posZ)^2;
+    Iz = Iz + noseBottomStringers(i).area*(noseBottomStringers(i).posX-centroid.posX)^2;
+    Ixz = Ixz + noseBottomStringers(i).area*(noseBottomStringers(i).posX-centroid.posX)*(noseBottomStringers(i).posZ-centroid.posZ)^2;
+end
 
 %define webs
 
 
 %upper webs
-for i=1:length(numTopStringers)+1
+for i=1:(numTopStringers+1)
     web(i).xStart = sparCaps(1).posX + upperStringerGap*(i-1);
-    web(i).xEnd = sparCaps(1).posX + upperStringerGap*i;
-    %web(i).thickness = ...
-    %web(i).dp = ...  dP equation
-    %web(i).qPrime = ...  summing dP
-    %web(i).Area = ...      Example:  get_area(web(i).xStart,web(i).xEnd,1)
+    web(i).xEnd = sparCaps(1).posX + upperStringerGap*(i);
+    web(i).thickness = t_upper;
+    web(i).zStart = get_z(web(i).xStart,1);
+    web(i).zEnd = get_z(web(i).xEnd,1);
+    if i==1
+        web(i).dp_area = sparCaps(1).area;
+        web(i).dP = 0;
+        web(i).qPrime = 0;
+    else
+        web(i).dp_area = topStringers(i-1).area;
+        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
+        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).qPrime = web(i).qPrime + web(i).dP;
+    end
+    
+    tempInt = get_int(web(i).xStart,web(i).xEnd,1);  %integral of airfoil function
+    triangle1 = (web(i).xStart - sparCaps(1).posX)*web(i).zStart/2;
+    triangle2 = (web(i).xEnd - sparCaps(1).posX)*web(i).zEnd/2;
+    web(i).Area = tempInt + triangle1 - triangle2;
     %web(i).dS = ...        Example:  get_distance(web(i).xStart,web(i).xEnd,1)
     %web(i).dS_over_t = ....
     %web(i).q_dS_over_t = ...

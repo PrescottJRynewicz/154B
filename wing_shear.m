@@ -13,17 +13,18 @@ close all; clear all; clc;
 
 %Spar Strcuture: Includes the location and area for each spar. Ordered
 %clockwise start from top left spar. 
+num_spars   = 4; 
 spar_pos_1  = 0.2; 
-spar_pos_2  = 0.75; 
-spar1       = struct('position',[spar_pos_1,0], 'area', 3); 
-spar2       = struct('position',[spar_pos_2,0], 'area', 3); 
-spar3       = struct('position',[spar_pos_1,0], 'area', 3); 
-spar4       = struct('position',[spar_pos_2,0], 'area', 3); 
+spar_pos_2  = 0.7; 
+spar1       = struct('position',[spar_pos_1,0], 'area', 1); 
+spar2       = struct('position',[spar_pos_2,0], 'area', 1); 
+spar3       = struct('position',[spar_pos_2,0], 'area', 1); 
+spar4       = struct('position',[spar_pos_1,0], 'area', 1); 
 
 % Section Struct. Includes the number os stringers, where the section
 % start, the web thickness, and arrays of stringer and web objects. 
 num_sections    = 4; 
-num_stringers   = [10,2,2,2]; 
+num_stringers   = [5,5,3,3]; 
 section1    = struct('num_str', 0,'start_pos', spar1.position(1), 'end_pos', spar2.position(1), 'x_length', 0, 'web_thick', 0, 'stringers', zeros(num_stringers(1),3), 'webs', []);
 section2    = struct('num_str', 0,'start_pos', spar3.position(1), 'end_pos', spar4.position(1), 'x_length', 0, 'web_thick', 0, 'stringers', zeros(num_stringers(2),3), 'webs', []); 
 section3    = struct('num_str', 0,'start_pos', spar4.position(1), 'end_pos', 0                , 'x_length', 0, 'web_thick', 0, 'stringers', zeros(num_stringers(3),3), 'webs', []); 
@@ -71,38 +72,62 @@ for index1 = 1:4
 end
 
 
-%% Centroid
+%% X Centroid
 
-centroid_x=0;
+centroid_x  = 0;
+centroid_x_area_sum=0;
 for index1 = 1:num_sections
     for index2 = 1:num_stringers(index1)
         centroid_x=centroid_x+(wing.sections(index1).stringers(index2,x_pos)...
             *wing.sections(index1).stringers(index2,str_area));
-    end
-end
-centroid_x_area_sum=0;
-for index1 = 1:num_sections
-    for index2 = 1:num_stringers(index1)
         centroid_x_area_sum=centroid_x_area_sum+wing.sections(index1).stringers(index2,str_area);
     end
 end
+for index1 = 1:num_spars
+    centroid_x = centroid_x + wing.spars(index1).position(x_pos)*wing.spars(index1).area;
+    centroid_x_area_sum = centroid_x_area_sum + wing.spars(index1).area;
+end
+
+
 centroid_x=centroid_x/centroid_x_area_sum;
 
+%% Z Centroid
 centroid_z=0;
-
-for index1 = 1:num_sections
-    for index2 = 1:num_stringers(index1)
-        centroid_z=centroid_x+(wing.sections(index1).stringers(index2,z_pos)...
-            *wing.sections(index1).stringers(index2,str_area));
-    end
-end
 centroid_z_area_sum=0;
 for index1 = 1:num_sections
     for index2 = 1:num_stringers(index1)
+        centroid_z=centroid_z+(wing.sections(index1).stringers(index2,z_pos)...
+            *wing.sections(index1).stringers(index2,str_area));
         centroid_z_area_sum=centroid_z_area_sum+wing.sections(index1).stringers(index2,str_area);
     end
 end
+for index1 = 1:num_spars
+    centroid_z = centroid_z + wing.spars(index1).position(z_pos)*wing.spars(index1).area;
+    centroid_z_area_sum = centroid_z_area_sum + wing.spars(index1).area;
+end
+
 centroid_z=centroid_z/centroid_z_area_sum;
 
 
-plot(wing.sections(1).stringers(:,1),wing.sections(1).stringers(
+%% Plots
+xChord = 0:.01:1;
+upperSurface = zeros(1,length(xChord));
+lowerSurface = zeros(1,length(xChord));
+
+for i=1:length(xChord)
+    upperSurface(i) = get_z(xChord(i),1);
+    lowerSurface(i) = get_z(xChord(i),0);
+end
+
+figure; hold on; axis equal; grid on;
+%plot(xChord,z_camber,'-')
+plot(xChord,upperSurface,'-')
+plot(xChord,lowerSurface,'-')
+for index = 1:num_sections
+    scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
+end
+for index = 1:num_spars
+    scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
+end
+scatter(centroid_x,centroid_z,'x')
+hold on; xlim([0 1]); ylim([-0.5 0.5]); 
