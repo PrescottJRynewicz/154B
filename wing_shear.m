@@ -72,26 +72,37 @@ end
 
 
 %% Centroid
-% 
-%     centroid_x=0;
-%     N=length(array(:,1));
-%     for k=1:N
-%         centroid_x=centroid_x+(array(k,1)*array(k,3));
-%     end
-%     area_sum=0;
-%     for k=1:N
-%         area_sum=area_sum+array(k,3);
-%     end
-%     x_c=centroid_x/area_sum;
-%     end
-%     function z_c=z_centroid(array)
-%     za_sum=0;
-%     N=length(array(:,1));
-%     for k=1:N
-%         za_sum=za_sum+(array(k,2)*array(k,3));
-%     end
-%     area_sum=0;
-%     for k=1:N
-%         area_sum=area_sum+array(k,3);
-%     end
-%     z_c=za_sum/area_sum;
+
+centroid_x=0;
+for index1 = 1:num_sections
+    for index2 = 1:num_stringers(index1)
+        centroid_x=centroid_x+(wing.sections(index1).stringers(index2,x_pos)...
+            *wing.sections(index1).stringers(index2,str_area));
+    end
+end
+centroid_x_area_sum=0;
+for index1 = 1:num_sections
+    for index2 = 1:num_stringers(index1)
+        centroid_x_area_sum=centroid_x_area_sum+wing.sections(index1).stringers(index2,str_area);
+    end
+end
+centroid_x=centroid_x/centroid_x_area_sum;
+
+centroid_z=0;
+
+for index1 = 1:num_sections
+    for index2 = 1:num_stringers(index1)
+        centroid_z=centroid_x+(wing.sections(index1).stringers(index2,z_pos)...
+            *wing.sections(index1).stringers(index2,str_area));
+    end
+end
+centroid_z_area_sum=0;
+for index1 = 1:num_sections
+    for index2 = 1:num_stringers(index1)
+        centroid_z_area_sum=centroid_z_area_sum+wing.sections(index1).stringers(index2,str_area);
+    end
+end
+centroid_z=centroid_z/centroid_z_area_sum;
+
+
+plot(wing.sections(1).stringers(:,1),wing.sections(1).stringers(
