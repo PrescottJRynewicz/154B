@@ -93,22 +93,22 @@ Ix = 0; Iz = 0; Ixz = 0;
 for i=1:4 %spar caps
     Ix = Ix + sparCaps(i).area*(sparCaps(i).posZ-centroid.posZ)^2;
     Iz = Iz + sparCaps(i).area*(sparCaps(i).posX-centroid.posX)^2;
-    Ixz = Ixz + sparCaps(i).area*(sparCaps(i).posX-centroid.posX)*(sparCaps(i).posZ-centroid.posZ)^2;
+    Ixz = Ixz + sparCaps(i).area*(sparCaps(i).posX-centroid.posX)*(sparCaps(i).posZ-centroid.posZ);
 end
 for i=1:numTopStringers %top stringers
     Ix = Ix + topStringers(i).area*(topStringers(i).posZ-centroid.posZ)^2;
     Iz = Iz + topStringers(i).area*(topStringers(i).posX-centroid.posX)^2;
-    Ixz = Ixz + topStringers(i).area*(topStringers(i).posX-centroid.posX)*(topStringers(i).posZ-centroid.posZ)^2;
+    Ixz = Ixz + topStringers(i).area*(topStringers(i).posX-centroid.posX)*(topStringers(i).posZ-centroid.posZ);
 end
 for i=1:numBottomStringers %top stringers
     Ix = Ix + bottomStringers(i).area*(bottomStringers(i).posZ-centroid.posZ)^2;
     Iz = Iz + bottomStringers(i).area*(bottomStringers(i).posX-centroid.posX)^2;
-    Ixz = Ixz + bottomStringers(i).area*(bottomStringers(i).posX-centroid.posX)*(bottomStringers(i).posZ-centroid.posZ)^2;
+    Ixz = Ixz + bottomStringers(i).area*(bottomStringers(i).posX-centroid.posX)*(bottomStringers(i).posZ-centroid.posZ);
 end
 for i=1:numNoseTopStringers %top stringers
     Ix = Ix + noseTopStringers(i).area*(noseTopStringers(i).posZ-centroid.posZ)^2;
     Iz = Iz + noseTopStringers(i).area*(noseTopStringers(i).posX-centroid.posX)^2;
-    Ixz = Ixz + noseTopStringers(i).area*(noseTopStringers(i).posX-centroid.posX)*(noseTopStringers(i).posZ-centroid.posZ)^2;
+    Ixz = Ixz + noseTopStringers(i).area*(noseTopStringers(i).posX-centroid.posX)*(noseTopStringers(i).posZ-centroid.posZ);
 end
 for i=1:numNoseBottomStringers %top stringers
     Ix = Ix + noseBottomStringers(i).area*(noseBottomStringers(i).posZ-centroid.posZ)^2;
