@@ -34,6 +34,7 @@ end
 upper_surface   = z_camber + z_thickness;
 lower_surface   = z_camber - z_thickness;
 
+
 %% Define Wing Structures
 % This section will eventually implement methods to generate different wing
 % layouts and positions. 
@@ -82,6 +83,8 @@ wing        = struct('spars',[spar1,spar2,spar3,spar4], 'sections', [section1, s
 
 %% Wing Setup: Optimize later to only make updates where changes occur
 
+% Calculate the gap between all the stringers. 
+% This is assuming evenly spaced stringers in each section. 
 gap = linspace(0,0,num_sections); 
 for index = 1:num_sections
     gap(index)      = (wing.sections(index).end_pos - wing.sections(index).start_pos)/(num_stringers(index)+1); 
@@ -89,21 +92,21 @@ end
 
 
 %% Place all x, z and area values for all sections of wing. 
-for index1 = 1:num_sections
-    for index2 = 1:num_stringers(index1)
-        %% double check index1 = 2
-        wing.sections(index1).stringers(index2,x_pos) = wing.sections(index1).start_pos + gap(index1)*index2;
-        wing.sections(index1).stringers(index2,z_pos) = get_z(wing.sections(index1).stringers(index2,x_pos),mod(index1,2));
-        wing.sections(index1).stringers(index2,str_area) = 1; 
+for section_num = 1:num_sections
+    for stringer_num = 1:num_stringers(section_num)
+        %% double check section_num = 2
+        wing.sections(section_num).stringers(stringer_num,x_pos) = wing.sections(section_num).start_pos + gap(section_num)*stringer_num;
+        wing.sections(section_num).stringers(stringer_num,z_pos) = get_z(wing.sections(section_num).stringers(stringer_num,x_pos),mod(section_num,2));
+        wing.sections(section_num).stringers(stringer_num,str_area) = 1; 
     end
 end
 
 %% Place all spar z positions. This will not change, as there will always be 4 spars. 
-for index1 = 1:4
-    if index1 == 1 || index1 == 2
-        wing.spars(index1).position(2) = get_z(wing.spars(index1).position(1),1);
+for section_num = 1:4
+    if section_num == 1 || section_num == 2
+        wing.spars(section_num).position(2) = get_z(wing.spars(section_num).position(1),1);
     else
-        wing.spars(index1).position(2) = get_z(wing.spars(index1).position(1),0);
+        wing.spars(section_num).position(2) = get_z(wing.spars(section_num).position(1),0);
     end
 end
 
@@ -114,23 +117,23 @@ centroid_x  = 0;
 centroid_x_area_sum=0;
 centroid_z=0;
 centroid_z_area_sum=0;
-for index1 = 1:num_sections
-    for index2 = 1:num_stringers(index1)
-        centroid_x=centroid_x+(wing.sections(index1).stringers(index2,x_pos)...
-            *wing.sections(index1).stringers(index2,str_area));
-        centroid_x_area_sum=centroid_x_area_sum+wing.sections(index1).stringers(index2,str_area);
+for section_num = 1:num_sections
+    for stringer_num = 1:num_stringers(section_num)
+        centroid_x = centroid_x+(wing.sections(section_num).stringers(stringer_num,x_pos)...
+            *wing.sections(section_num).stringers(stringer_num,str_area));
+        centroid_x_area_sum=centroid_x_area_sum+wing.sections(section_num).stringers(stringer_num,str_area);
         
-        centroid_z=centroid_z+(wing.sections(index1).stringers(index2,z_pos)...
-            *wing.sections(index1).stringers(index2,str_area));
-        centroid_z_area_sum=centroid_z_area_sum+wing.sections(index1).stringers(index2,str_area);
+        centroid_z=centroid_z+(wing.sections(section_num).stringers(stringer_num,z_pos)...
+            *wing.sections(section_num).stringers(stringer_num,str_area));
+        centroid_z_area_sum=centroid_z_area_sum+wing.sections(section_num).stringers(stringer_num,str_area);
     end
 end
-for index1 = 1:num_spars
-    centroid_x = centroid_x + wing.spars(index1).position(x_pos)*wing.spars(index1).area;
-    centroid_x_area_sum = centroid_x_area_sum + wing.spars(index1).area;
+for section_num = 1:num_spars
+    centroid_x = centroid_x + wing.spars(section_num).position(x_pos)*wing.spars(section_num).area;
+    centroid_x_area_sum = centroid_x_area_sum + wing.spars(section_num).area;
     
-    centroid_z = centroid_z + wing.spars(index1).position(z_pos)*wing.spars(index1).area;
-    centroid_z_area_sum = centroid_z_area_sum + wing.spars(index1).area;
+    centroid_z = centroid_z + wing.spars(section_num).position(z_pos)*wing.spars(section_num).area;
+    centroid_z_area_sum = centroid_z_area_sum + wing.spars(section_num).area;
 end
 
 
@@ -139,29 +142,29 @@ centroid_z=centroid_z/centroid_z_area_sum;
 
 %% Moment of Inertia
 Ix=0;Iz = 0; Ixz = 0; 
-for index1 = 1:num_sections
-    for index2 = 1:num_stringers(index1)
-        Ix=Ix+(wing.sections(index1).stringers(index2,str_area)*...
-            (wing.sections(index1).stringers(index2,z_pos)-centroid_z)^2);
-        Iz=Iz+(wing.sections(index1).stringers(index2,str_area)*...
-            (wing.sections(index1).stringers(index2,x_pos)-centroid_x)^2);
-        Ixz = Ixz + wing.sections(index1).stringers(index2,str_area) *...
-            (wing.sections(index1).stringers(index2,z_pos)-centroid_z) *...
-            (wing.sections(index1).stringers(index2,x_pos)-centroid_x);
+for section_num = 1:num_sections
+    for stringer_num = 1:num_stringers(section_num)
+        Ix=Ix+(wing.sections(section_num).stringers(stringer_num,str_area)*...
+            (wing.sections(section_num).stringers(stringer_num,z_pos)-centroid_z)^2);
+        Iz=Iz+(wing.sections(section_num).stringers(stringer_num,str_area)*...
+            (wing.sections(section_num).stringers(stringer_num,x_pos)-centroid_x)^2);
+        Ixz = Ixz + wing.sections(section_num).stringers(stringer_num,str_area) *...
+            (wing.sections(section_num).stringers(stringer_num,z_pos)-centroid_z) *...
+            (wing.sections(section_num).stringers(stringer_num,x_pos)-centroid_x);
     end
 end
-for index1 = 1:num_spars
-    Ix = Ix + wing.spars(index1).area*(wing.spars(index1).position(z_pos)-centroid_z)^2; 
-    Iz = Iz + wing.spars(index1).area*(wing.spars(index1).position(x_pos)-centroid_x)^2; 
-    Ixz = Ixz + wing.spars(index1).area*(wing.spars(index1).position(x_pos)-centroid_x)*...
-                  (wing.spars(index1).position(z_pos)-centroid_z); 
+for section_num = 1:num_spars
+    Ix = Ix + wing.spars(section_num).area*(wing.spars(section_num).position(z_pos)-centroid_z)^2; 
+    Iz = Iz + wing.spars(section_num).area*(wing.spars(section_num).position(x_pos)-centroid_x)^2; 
+    Ixz = Ixz + wing.spars(section_num).area*(wing.spars(section_num).position(x_pos)-centroid_x)*...
+                  (wing.spars(section_num).position(z_pos)-centroid_z); 
 end 
 %% Web Calculations 
 
 %Sample Inputs
 Vx              = 1; 
 Vz              = 0; 
-index3          = 1; 
+web_num          = 1; 
 x_plus          = 0; 
 x_minus         = 0; 
 x_i             = 0;
@@ -170,70 +173,96 @@ z_i             = 0;
 %% Nested loop to run through all webs. The loops are used for all stringer
 % webs and then there are conditions that handle all of the spar webs, and 
 % differences between cells. 
-for index1 = 1:num_sections
-    for index2 = 1:(num_stringers(index1)+1)
+
+% to update:
+% 1) Make two web structs for cell1 and cell2. Break up code in here for
+% different cells.
+% 2) Update iterations for taking care if appropriate ordering of webs. 
+% 3) Proof read all code. 
+
+for section_num = 1:num_sections % run through sections
+    for stringer_num = 1:(num_stringers(section_num)+1) % run through webs. 
         
-        
-        if index2 == 1
-            x_plus  = wing.sections(index1).stringers(index2);
-            x_minus = wing.sections(index1).start_pos;
-            x_i     = wing.sections(index1).start_pos; 
-            z_i     = get_z(x_i, mod(index1,2)); 
-            z_plus  = get_z(x_plus, mod(index1,2));
+        % define positions for stringers to calculate AREAS. 
+        if stringer_num == 1
+            x_plus  = wing.sections(section_num).stringers(stringer_num);
+            x_minus = wing.sections(section_num).start_pos;
+            x_i     = wing.sections(section_num).start_pos; 
+            z_i     = get_z(x_i, mod(section_num,2)); 
+            z_plus  = get_z(x_plus, mod(section_num,2));
+            integral = get_int(x_i,x_plus,mod(section_num,2));
             
-            integral = get_int(x_i,x_plus,mod(index1,2));
-        elseif index2 == (num_stringers(index1)+1)
-            x_plus  = wing.sections(index1).end_pos;
-            x_minus = wing.sections(index1).start_pos;
-            x_i     = wing.sections(index1).stringers(index2-1); 
-            z_i     = get_z(x_i, mod(index1,2)); 
-            z_plus  = get_z(x_plus, mod(index1,2));
-            integral = get_int(x_i,x_plus,mod(index1,2));
+        elseif stringer_num == (num_stringers(section_num)+1)
+            x_plus  = wing.sections(section_num).end_pos;
+            x_minus = wing.sections(section_num).start_pos;
+            x_i     = wing.sections(section_num).stringers(stringer_num-1); 
+            z_i     = get_z(x_i, mod(section_num,2)); 
+            z_plus  = get_z(x_plus, mod(section_num,2));
+            integral = get_int(x_i,x_plus,mod(section_num,2));
         else
-            x_plus  = wing.sections(index1).stringers(index2);
-            x_minus = wing.sections(index1).start_pos;
-            x_i     = wing.sections(index1).stringers(index2-1); 
-            z_i     = get_z(x_i, mod(index1,2)); 
-            z_plus  = get_z(x_plus, mod(index1,2));
-            integral = get_int(x_i,x_plus,mod(index1,2));
+            x_plus  = wing.sections(section_num).stringers(stringer_num);
+            x_minus = wing.sections(section_num).start_pos;
+            x_i     = wing.sections(section_num).stringers(stringer_num-1); 
+            z_i     = get_z(x_i, mod(section_num,2)); 
+            z_plus  = get_z(x_plus, mod(section_num,2));
+            integral = get_int(x_i,x_plus,mod(section_num,2));
         end
         
-        wing.webs(index3).areas = abs(z_i*(x_i-x_minus)/2) - abs((z_plus*(x_plus-x_minus))/2) + integral(end);     
+        % Sum areas from triangles and integrals above. 
+        wing.webs(web_num).areas = abs(z_i*(x_i-x_minus)/2) - abs((z_plus*(x_plus-x_minus))/2) + integral(end);     
         
-        if index1 == 1 && index2 == 1
-            wing.webs(index3).dp_area = wing.spars(index1).area; 
-            wing.webs(index3).dP      = 0; 
-            wing.webs(index3).qPrime  = 0; 
-        elseif index1 == 2 && index2 == 1
-            wing.webs(index3).dp_area = wing.spars(3).area; 
+        % outline special cases for shear flow starting conditions, based
+        % off of cell and section. 
+        if section_num == 1 && stringer_num == 1
+            wing.webs(web_num).dp_area = wing.spars(section_num).area; 
+            wing.webs(web_num).dP      = 0; 
+            wing.webs(web_num).qPrime  = 0; 
+        elseif section_num == 2 && stringer_num == 1
+            wing.webs(web_num).dp_area = wing.spars(3).area; 
             %update this for changing shear flow connection points. 
-            wing.webs(index3).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(index3).dp_area); 
-            wing.webs(index3).qPrime  = 0; %% input value from rear spar here. 
-        elseif index1 == 3 && index2 == 1
-            wing.webs(index3).dp_area = wing.spars(4).area; 
-            wing.webs(index3).dP      = 0;
-            wing.webs(index3).qPrime  = 0;
-        elseif index1 == 4 && index2 == 1
-            wing.webs(index3).dp_area = 0; 
+            wing.webs(web_num).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
+            wing.webs(web_num).qPrime  = 0; %% input value from rear spar here. 
+        elseif section_num == 3 && stringer_num == 1
+            wing.webs(web_num).dp_area = wing.spars(4).area; 
+            wing.webs(web_num).dP      = 0;
+            wing.webs(web_num).qPrime  = 0;
+        elseif section_num == 4 && stringer_num == 1
+            wing.webs(web_num).dp_area = 0; 
             % change this for altering shear flow connection points. 
-            wing.webs(index3).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(index3).dp_area); 
-            wing.webs(index3).qPrime  = 0; %% input value from lower nose here. 
+            wing.webs(web_num).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
+            wing.webs(web_num).qPrime  = 0; %% input value from lower nose here. 
         else
-            wing.webs(index3).dp_area = wing.sections(index1).stringers(index2-1,str_area); 
-            wing.webs(index3).dP      = get_dp(x_i - centroid_x, z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(index3).dp_area); 
-            wing.webs(index3).qPrime  = wing.webs(index3-1).qPrime - wing.webs(index3).dP;   
+            wing.webs(web_num).dp_area = wing.sections(section_num).stringers(stringer_num-1,str_area); 
+            wing.webs(web_num).dP      = get_dp(x_i - centroid_x, z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
+            wing.webs(web_num).qPrime  = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP;   
         end
         
-        wing.webs(index3).ds            = get_ds(x_i,x_plus,mod(index1,2)); 
-        wing.webs(index3).dS_over_t     = wing.webs(index3).ds / wing.webs(index3).thickness;
-        wing.webs(index3).q_dS_over_t   = wing.webs(index3).qPrime*wing.webs(index3).dS_over_t; 
-        wing.webs(index3).two_A_qprime  = 2*wing.webs(index3).areas*wing.webs(index3).qPrime; 
-        wing.webs(index3).qp_dx         = wing.webs(index3).qPrime*(x_plus - x_i); 
-        wing.webs(index3).qp_dz         = wing.webs(index3).qPrime*(z_plus - z_i); 
+        wing.webs(web_num).ds            = get_ds(x_i,x_plus,mod(section_num,2)); 
+        wing.webs(web_num).dS_over_t     = wing.webs(web_num).ds / wing.webs(web_num).thickness;
+        wing.webs(web_num).q_dS_over_t   = wing.webs(web_num).qPrime*wing.webs(web_num).dS_over_t; 
+        wing.webs(web_num).two_A_qprime  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime; 
+        wing.webs(web_num).qp_dx         = wing.webs(web_num).qPrime*(x_plus - x_i); 
+        wing.webs(web_num).qp_dz         = wing.webs(web_num).qPrime*(z_plus - z_i); 
 
-        index3 = index3+1;
-
+        web_num = web_num+1;
+        disp(length([wing.webs.ds]));
     end
+    
+    if section_num == 1
+        x_plus                          = wing.spars(3).position(x_pos); 
+        x_minus                         = wing.sections(section_num).start_pos;
+        x_i                             = wing.spars(2).position(x_pos); 
+        z_i                             = get_z(x_i, mod(section_num,2)); 
+        z_plus                          = get_z(x_plus, mod(section_num,2));
+        wing.webs(web_num).areas        = (x_i-x_minus)*z_i/2 + abs((x_i-x_minus)*z_plus/2);
+        wing.webs(web_num).dp_area      = wing.spars(2).area;
+        wing.webs(web_num).dP           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
+        wing.webs(web_num).qPrime       = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP; 
+        wing.webs(web_num).ds           = abs(z_i - z_plus); 
+        wing.webs(web_num).dS_over_t    = abs(z_i - z_plus)/wing.webs(web_num).thickness;
+        wing.webs(web_num).q_dS_over_t  = wing.webs(web_num).qPrime * wing.webs(web_num).dS_over_t;
+        
+    
 end
 
 %% Plots

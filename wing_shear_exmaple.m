@@ -15,8 +15,8 @@ end
 %define a few 
 numTopStringers = 5;
 numBottomStringers = 5;
-numNoseTopStringers = 5;
-numNoseBottomStringers = 5;
+numNoseTopStringers = 3;
+numNoseBottomStringers = 3;
 
 t_upper = 0.02/12;
 t_lower = 0.02/12;
