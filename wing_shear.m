@@ -377,6 +377,61 @@ A22         = sum(dS_over_t(cell_1_webs+1:total_webs));
 A12         = -dS_over_t(cell_1_webs);
 A21         = -dS_over_t(end);
 
+q_dS_over_t_X   = [wing.webs.q_dS_over_t_X];
+B1_X = sum(q_dS_over_t_X(1:cell_1_webs));
+B2_X = sum(q_dS_over_t_X(cell_1_webs+1:total_webs));
+
+q_dS_over_t_Z   = [wing.webs.q_dS_over_t_Z];
+B1_Z = sum(q_dS_over_t_Z(1:cell_1_webs));
+B2_Z = sum(q_dS_over_t_Z(cell_1_webs+1:total_webs));
+
+Amat = [A11 A12; A21 A22];
+Bmat_X = -[B1_X;B2_X];
+Bmat_Z = -[B1_Z;B2_Z];
+
+qs_X = inv(Amat)*Bmat_X;
+qs_Z = inv(Amat)*Bmat_Z;
+
+
+
+wing_Area   = [wing.webs.areas];
+sum_2_a_q_X = sum([wing.webs.two_A_qprime_X])+qs_X(1)*sum(wing_Area(1:cell_1_webs))+qs_X(2)*sum(wing_Area(cell_1_webs+1:total_webs));
+sum_2_a_q_Z = sum([wing.webs.two_A_qprime_Z])+qs_Z(1)*sum(wing_Area(1:cell_1_webs))+qs_Z(2)*sum(wing_Area(cell_1_webs+1:total_webs));
+
+%Shear Center
+sc.posX =  sum_2_a_q_Z / Vz + spar_pos_1;
+sc.posZ =  sum_2_a_q_X / Vx;
+
+torque_Z = Vz*(sc.posX - 0.25);  %find out what the .25 is about
+torque_X = Vx*sc.posZ;
+
+Area1 = sum(wing_Area(1:cell_1_webs-1));
+Area2 = sum(wing_Area(cell_1_webs+1:total_webs-1));
+
+q1t_over_q2t = (A22/Area2 + dS_over_t(end)/Area1)/(A11/Area1 + dS_over_t(end)/Area2);
+
+q2t = torque_X/(2*Area1*q1t_over_q2t + 2*Area2);
+q1t = q2t*q1t_over_q2t;
+qt_X = [q1t;q2t];
+
+q2t = torque_Z/(2*Area1*q1t_over_q2t + 2*Area2);
+q1t = q2t*q1t_over_q2t;
+qt_Z = [q1t;q2t];
+
+%% Code is currently working and all answers align with toohey's code.
+% Need to finish the failure criteria parts, and then that should be good
+% for PDR report. After that we will implement monte Carlo Stuff.
+
+
+% --- - add up all shear flows:  qtot = qPrime + qt + qs
+
+
+
+
+%--- insert force balance to check total shear flows --- 
+
+% --- -- 
+
 
 
 %% Plots
