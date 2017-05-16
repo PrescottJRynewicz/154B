@@ -3,20 +3,15 @@ clear all;
 close all;
 
 
-for testLoop =1:2
 
-% initial load:
-if testLoop == 2
-    Vx = 1; Vz = 0;
-else 
-    Vx = 0; Vz = 1;    
-end
+
+Vx = 1; Vz = 1; My = 1;  %test loads will be applied individually
 
 %define a few 
-numTopStringers = 5;
-numBottomStringers = 5;
-numNoseTopStringers = 3;
-numNoseBottomStringers = 3;
+numTopStringers = 4;
+numBottomStringers = 4;
+numNoseTopStringers = 2;
+numNoseBottomStringers = 2;
 
 t_upper = 0.02/12;
 t_lower = 0.02/12;
@@ -148,13 +143,17 @@ for i=1:(numStringers+1)
     web(i).zEnd = get_z(web(i).xEnd,1);
     if i==1
         web(i).dp_area = sparCaps(1).area;
-        web(i).dP = 0;
-        web(i).qPrime = 0;
+        web(i).dP_X = 0;
+        web(i).dP_Z = 0;
+        web(i).qPrime_X = 0;
+        web(i).qPrime_Z = 0;
     else
         web(i).dp_area = tempStringers(i-1).area;
-        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-        web(i).qPrime = web(i-1).qPrime - web(i).dP;
+        dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
+        web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);  %just Vx
+        web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);  %just Vz
+        web(i).qPrime_X = web(i-1).qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
     tempInt = get_int(web(i).xStart,web(i).xEnd,1);  %integral of airfoil function
     triangle1 = abs( (web(i).xStart - sparCaps(1).posX)*web(i).zStart/2);
@@ -162,10 +161,15 @@ for i=1:(numStringers+1)
     web(i).Area = tempInt + triangle1 - triangle2;
     web(i).ds = get_ds(web(i).xStart,web(i).xEnd,1);
     web(i).dS_over_t = web(i).ds / web(i).thickness;
-    web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-    web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+    
+    web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+    web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+    web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+    web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+    web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+    web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
     %web(i).radCurv = ...   Example:  get_curve(web(i).xStart,web(i).xEnd,1)
 end
 webTop = web;
@@ -179,17 +183,25 @@ web(i).thickness = t_rearSpar;
 web(i).zStart = sparCaps(3).posZ;
 web(i).zEnd = sparCaps(4).posZ;
 web(i).dp_area = sparCaps(3).area;
-web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-web(i).qPrime = webTop(numTopStringers+1).qPrime - web(i).dP;
+dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
+web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+web(i).qPrime_X = webTop(numTopStringers+1).qPrime_X - web(i).dP_X;
+web(i).qPrime_Z = webTop(numTopStringers+1).qPrime_Z - web(i).dP_Z;
+
 web(i).Area = (sparCaps(3).posX-sparCaps(1).posX)*sparCaps(3).posZ/2 + ...
     abs((sparCaps(3).posX-sparCaps(1).posX)*sparCaps(4).posZ/2);
 web(i).ds = abs(sparCaps(3).posZ - sparCaps(4).posZ);
 web(i).dS_over_t = web(i).ds / web(i).thickness;
-web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+
+web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
 
 webRearSpar = web;
 web = [];
@@ -207,16 +219,19 @@ for i=1:(numStringers+1)
     web(i).thickness = webThickness;
     web(i).zStart = get_z(web(i).xStart,0);
     web(i).zEnd = get_z(web(i).xEnd,0);
+    dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
     if i==1
         web(i).dp_area = sparCaps(4).area;
-        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-        web(i).qPrime = webRearSpar.qPrime - web(i).dP;
+        web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).qPrime_X = webRearSpar.qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = webRearSpar.qPrime_Z - web(i).dP_Z;
     else
         web(i).dp_area = tempStringers(i-1).area;
-        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-        web(i).qPrime = web(i-1).qPrime - web(i).dP;
+        web(i).dP_X = get_dp(dx,dz, Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).dP_Z = get_dp(dx,dz, 0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).qPrime_X = web(i-1).qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
     
     tempInt = get_int(web(i).xEnd,web(i).xStart,0);  %integral of airfoil function
@@ -225,10 +240,15 @@ for i=1:(numStringers+1)
     web(i).Area = tempInt + triangle1 - triangle2;
     web(i).ds = get_ds(web(i).xStart,web(i).xEnd,0);
     web(i).dS_over_t = web(i).ds / web(i).thickness;
-    web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-    web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+
+    web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+    web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+    web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+    web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+    web(i).qp_dx_X = web(i).qPrime_X*(web(i).xEnd-web(i).xStart);
+    web(i).qp_dx_Z = web(i).qPrime_Z*(web(i).xEnd-web(i).xStart);
+    web(i).qp_dz_X = web(i).qPrime_X*(web(i).zEnd-web(i).zStart);
+    web(i).qp_dz_Z = web(i).qPrime_Z*(web(i).zEnd-web(i).zStart);
 
     %web(i).radCurv = ...   Example:  get_curve(web(i).xStart,web(i).xEnd,1)
 end
@@ -243,16 +263,23 @@ web(i).thickness = t_frontSpar;
 web(i).zStart = sparCaps(2).posZ;
 web(i).zEnd = sparCaps(1).posZ;
 web(i).dp_area = sparCaps(2).area;
-web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-web(i).qPrime = webBottom(numBottomStringers+1).qPrime - web(i).dP;
+dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
+web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+web(i).qPrime_X = webBottom(numBottomStringers+1).qPrime_X - web(i).dP_X;
+web(i).qPrime_Z = webBottom(numBottomStringers+1).qPrime_Z - web(i).dP_Z;
 web(i).Area = 0;
 web(i).ds = abs(sparCaps(2).posZ - sparCaps(1).posZ);
 web(i).dS_over_t = web(i).ds / web(i).thickness;
-web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+
+web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
 
 webFrontSpar = web;
 web = [];
@@ -274,15 +301,20 @@ for i=1:(numStringers+1)
     web(i).thickness = webThickness;
     web(i).zStart = get_z(web(i).xStart,0);
     web(i).zEnd = get_z(web(i).xEnd,0);
+    dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
+
     if i==1
         web(i).dp_area = sparCaps(2).area;
-        web(i).dP = 0;
-        web(i).qPrime = 0;
+        web(i).dP_X = 0;
+        web(i).dP_Z = 0;
+        web(i).qPrime_X = 0;
+        web(i).qPrime_Z = 0;
     else
         web(i).dp_area = tempStringers(i-1).area;
-        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-        web(i).qPrime = web(i-1).qPrime - web(i).dP;
+        web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).qPrime_X = web(i-1).qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
     tempInt = get_int(web(i).xEnd,web(i).xStart,0);  %integral of airfoil function
     triangle1 = abs((web(i).xStart - sparCaps(2).posX)*web(i).zStart/2);
@@ -290,10 +322,15 @@ for i=1:(numStringers+1)
     web(i).Area = tempInt + triangle1 - triangle2;
     web(i).ds = get_ds(web(i).xStart,web(i).xEnd,0);
     web(i).dS_over_t = web(i).ds / web(i).thickness;
-    web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-    web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+
+    web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+    web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+    web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+    web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+    web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+    web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
 
     %web(i).radCurv = ...   Example:  get_curve(web(i).xStart,web(i).xEnd,1)
 end
@@ -312,15 +349,19 @@ for i=1:(numStringers+1)
     web(i).thickness = webThickness;
     web(i).zStart = get_z(web(i).xStart,1);
     web(i).zEnd = get_z(web(i).xEnd,1);
+    dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
     if i==1
         web(i).dp_area = 0;
-        web(i).dP = 0;
-        web(i).qPrime = webLowerNose(numNoseBottomStringers+1).qPrime - web(i).dP;
+        web(i).dP_X = 0;
+        web(i).dP_Z = 0;
+        web(i).qPrime_X = webLowerNose(numNoseBottomStringers+1).qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = webLowerNose(numNoseBottomStringers+1).qPrime_Z - web(i).dP_Z;
     else
         web(i).dp_area = tempStringers(i-1).area;
-        web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-        web(i).qPrime = web(i-1).qPrime - web(i).dP;
+        web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+        web(i).qPrime_X = web(i-1).qPrime_X - web(i).dP_X;
+        web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
     tempInt = get_int(web(i).xStart,web(i).xEnd,1);  %integral of airfoil function
     triangle2 = abs((web(i).xStart - sparCaps(2).posX)*web(i).zStart/2);
@@ -328,10 +369,15 @@ for i=1:(numStringers+1)
     web(i).Area = tempInt + triangle1 - triangle2;
     web(i).ds = get_ds(web(i).xStart,web(i).xEnd,1);
     web(i).dS_over_t = web(i).ds / web(i).thickness;
-    web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-    web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+
+    web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+    web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+    web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+    web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+    web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+    web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+    web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
 
     %web(i).radCurv = ...   Example:  get_curve(web(i).xStart,web(i).xEnd,1)
 end
@@ -347,29 +393,36 @@ web(i).thickness = t_frontSpar;
 web(i).zStart = sparCaps(1).posZ;
 web(i).zEnd = sparCaps(2).posZ;
 web(i).dp_area = sparCaps(1).area;
-web(i).dP = get_dp(web(i).xStart-centroid.posX,web(i).zStart-centroid.posZ, ...
-        Vx,Vz,Ix,Iz,Ixz,web(i).dp_area);
-web(i).qPrime = webUpperNose(numNoseTopStringers+1).qPrime - web(i).dP;
+dx = web(i).xStart-centroid.posX; dz = web(i).zStart-centroid.posZ;
+
+web(i).dP_X = get_dp(dx,dz,Vx,0,Ix,Iz,Ixz,web(i).dp_area);
+web(i).dP_Z = get_dp(dx,dz,0,Vz,Ix,Iz,Ixz,web(i).dp_area);
+web(i).qPrime_X = webUpperNose(numNoseTopStringers+1).qPrime_X - web(i).dP_X;
+web(i).qPrime_Z = webUpperNose(numNoseTopStringers+1).qPrime_Z - web(i).dP_Z;
 web(i).Area = 0;
 web(i).ds = abs(sparCaps(1).posZ - sparCaps(2).posZ);
 web(i).dS_over_t = web(i).ds / web(i).thickness;
-web(i).q_dS_over_t = web(i).qPrime * web(i).dS_over_t;
-web(i).two_A_qprime = 2*web(i).Area*web(i).qPrime;
-    web(i).qp_dx = web(i).qPrime*(web(i).xEnd-web(i).xStart);
-    web(i).qp_dz = web(i).qPrime*(web(i).zEnd-web(i).zStart);
+web(i).q_dS_over_t_X = web(i).qPrime_X * web(i).dS_over_t;
+web(i).q_dS_over_t_Z = web(i).qPrime_Z * web(i).dS_over_t;
+web(i).two_A_qprime_X = 2*web(i).Area*web(i).qPrime_X;
+web(i).two_A_qprime_Z = 2*web(i).Area*web(i).qPrime_Z;
+web(i).qp_dx_X = web(i).qPrime_X *(web(i).xEnd-web(i).xStart);
+web(i).qp_dx_Z = web(i).qPrime_Z *(web(i).xEnd-web(i).xStart);
+web(i).qp_dz_X = web(i).qPrime_X *(web(i).zEnd-web(i).zStart);
+web(i).qp_dz_Z = web(i).qPrime_Z *(web(i).zEnd-web(i).zStart);
 
 webFrontSparCell2 = web;
 web = [];
 
 
-%check that dp*dx sums up to Vx
+%check that q'*dx sums up to Vx
 
-Fx = sum([webTop.qp_dx])+webRearSpar.qp_dx+ sum([webBottom.qp_dx])+webFrontSpar.qp_dx;  %cell 1
-Fx = Fx + sum([webLowerNose.qp_dx])+ sum([webUpperNose.qp_dx]);  %cell 2
-%Fx
-Fz = sum([webTop.qp_dz])+webRearSpar.qp_dz+ sum([webBottom.qp_dz])+webFrontSpar.qp_dz;  %cell 1
-Fz = Fz + sum([webLowerNose.qp_dz])+ sum([webUpperNose.qp_dz]);  %cell 2
-%Fz
+Fx = sum([webTop.qp_dx_X])+webRearSpar.qp_dx_X+ sum([webBottom.qp_dx_X])+webFrontSpar.qp_dx_X;  %cell 1
+Fx = Fx + sum([webLowerNose.qp_dx_X])+ sum([webUpperNose.qp_dx_X]);  %cell 2
+Fx
+Fz = sum([webTop.qp_dz_X])+webRearSpar.qp_dz_X+ sum([webBottom.qp_dz_X])+webFrontSpar.qp_dz_X;  %cell 1
+Fz = Fz + sum([webLowerNose.qp_dz_X])+ sum([webUpperNose.qp_dz_X]);  %cell 2
+Fz
 %%
 
 % sum up the ds/t and  q*ds/t to solve 2 equations, 2 unknowns
@@ -381,36 +434,41 @@ A22 = sum([webLowerNose.dS_over_t])+ sum([webUpperNose.dS_over_t])+webFrontSparC
 A12 = -webFrontSpar.dS_over_t;
 A21 = -webFrontSparCell2.dS_over_t;
 
-B1 = sum([webTop.q_dS_over_t])+webRearSpar.q_dS_over_t+ sum([webBottom.q_dS_over_t])+webFrontSpar.q_dS_over_t;
-B2 = sum([webLowerNose.q_dS_over_t])+ sum([webUpperNose.q_dS_over_t])+webFrontSparCell2.q_dS_over_t;
+B1_X = sum([webTop.q_dS_over_t_X])+webRearSpar.q_dS_over_t_X+ sum([webBottom.q_dS_over_t_X])+webFrontSpar.q_dS_over_t_X;
+B2_X = sum([webLowerNose.q_dS_over_t_X])+ sum([webUpperNose.q_dS_over_t_X])+webFrontSparCell2.q_dS_over_t_X;
+B1_Z = sum([webTop.q_dS_over_t_Z])+webRearSpar.q_dS_over_t_Z+ sum([webBottom.q_dS_over_t_Z])+webFrontSpar.q_dS_over_t_Z;
+B2_Z = sum([webLowerNose.q_dS_over_t_Z])+ sum([webUpperNose.q_dS_over_t_Z])+webFrontSparCell2.q_dS_over_t_Z;
 
 Amat = [A11 A12; A21 A22];
-Bmat = -[B1;B2];
+Bmat_X = -[B1_X;B2_X];
+Bmat_Z = -[B1_Z;B2_Z];
 
-qs = inv(Amat)*Bmat;
+qs_X = inv(Amat)*Bmat_X;
+qs_Z = inv(Amat)*Bmat_Z;
 
 
 
-sum_2_a_q = sum([webTop.two_A_qprime])+webRearSpar.two_A_qprime+ sum([webBottom.two_A_qprime]);  %cell 1 qprimes
-sum_2_a_q = sum_2_a_q + sum([webLowerNose.two_A_qprime])+ sum([webUpperNose.two_A_qprime]);   %cell 2 qprimes
-sum_2_a_q = sum_2_a_q +  qs(1)*(sum([webTop.Area])+webRearSpar.Area+ sum([webBottom.Area]));
-sum_2_a_q = sum_2_a_q +  qs(2)*(sum([webLowerNose.Area])+ sum([webUpperNose.Area]));
+sum_2_a_q_X = sum([webTop.two_A_qprime_X])+webRearSpar.two_A_qprime_X+ sum([webBottom.two_A_qprime_X]);  %cell 1 qprimes
+sum_2_a_q_X = sum_2_a_q_X + sum([webLowerNose.two_A_qprime_X])+ sum([webUpperNose.two_A_qprime_X]);   %cell 2 qprimes
+sum_2_a_q_X = sum_2_a_q_X +  qs_X(1)*(sum([webTop.Area])+webRearSpar.Area+ sum([webBottom.Area]));
+sum_2_a_q_X = sum_2_a_q_X +  qs_X(2)*(sum([webLowerNose.Area])+ sum([webUpperNose.Area]));
 
-if Vx == 0
-   sc.posX =  sum_2_a_q / Vz + frontSpar;
-elseif Vz == 0 
-   sc.posZ =  sum_2_a_q / Vx;
-end
+sum_2_a_q_Z = sum([webTop.two_A_qprime_Z])+webRearSpar.two_A_qprime_Z+ sum([webBottom.two_A_qprime_Z]);  %cell 1 qprimes
+sum_2_a_q_Z = sum_2_a_q_Z + sum([webLowerNose.two_A_qprime_Z])+ sum([webUpperNose.two_A_qprime_Z]);   %cell 2 qprimes
+sum_2_a_q_Z = sum_2_a_q_Z +  qs_Z(1)*(sum([webTop.Area])+webRearSpar.Area+ sum([webBottom.Area]));
+sum_2_a_q_Z = sum_2_a_q_Z +  qs_Z(2)*(sum([webLowerNose.Area])+ sum([webUpperNose.Area]));
+
+%shear center
+sc.posX =  sum_2_a_q_Z / Vz + frontSpar;
+sc.posZ =  sum_2_a_q_X / Vx;
 
 
 % now consider the torque representing shifting the load from the quarter
 % chord to the SC  (need to check signs on these moments)
  
-if Vx == 0
-     torque = Vz*(sc.posX - 0.25);
-elseif Vz == 0
-    torque = Vx*sc.posZ;
-end
+torque_Z = Vz*(sc.posX - 0.25);
+torque_X = Vx*sc.posZ;
+
 
 Area1 = sum([webTop.Area]) + webRearSpar.Area + sum([webBottom.Area]);
 %check area
@@ -424,17 +482,27 @@ Area2_check = get_int(0,frontSpar,1) + get_int(0,frontSpar,0);
 
 q1t_over_q2t = (A22/Area2 + webFrontSpar.dS_over_t/Area1)/(A11/Area1 + webFrontSpar.dS_over_t/Area2);
 
-q2t = torque/(2*Area1*q1t_over_q2t + 2*Area2);
+q2t = torque_X/(2*Area1*q1t_over_q2t + 2*Area2);
 q1t = q2t*q1t_over_q2t;
+qt_X = [q1t;q2t];
 
-qt = [q1t;q2t];
+q2t = torque_Z/(2*Area1*q1t_over_q2t + 2*Area2);
+q1t = q2t*q1t_over_q2t;
+qt_Z = [q1t;q2t];
+
+
+
+% --- - add up all shear flows:  qtot = qPrime + qt + qs
+
+
+
 
 %--- insert force balance to check total shear flows --- 
 
 % --- -- 
 
 
-end
+%end
 
 sc
 
@@ -464,3 +532,10 @@ plot([noseTopStringers.posX],[noseTopStringers.posZ],'or')
 plot([noseBottomStringers.posX],[noseBottomStringers.posZ],'or')
 plot(centroid.posX,centroid.posZ,'rx')
 plot(sc.posX,sc.posZ,'gx')
+
+
+
+
+
+
+
