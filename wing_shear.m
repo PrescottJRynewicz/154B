@@ -56,7 +56,8 @@ num_sections    = 4;
 num_stringers   = [5,5,3,3];
 num_spars       = 2; 
 
-web             = struct('areas',0,'thickness',0.0017,'dp_area',0,'dP_X',0, 'qPrime',0,'ds',0,'dS_over_t',0,'q_dS_over_t',0,'two_A_qprime',0,'qp_dx',0,'qp_dz',0);
+web             = struct('areas',0,'thickness',0.0017,'dp_area',0,'dP_X',0,'dp_Z',0,'qPrime_X',0,'qPrime_Z',0,...
+                    'ds',0,'dS_over_t',0,'q_dS_over_t_X',0,'q_dS_over_t_Z',0,'two_A_qprime_X',0,'two_A_qprime_Z',0,'qp_dx_X',0,'qp_dx_Z',0,'qp_dz_X',0,'qp_dz_Z',0);
 webs            = web; 
 for index = 2:sum(num_stringers)+num_sections+num_spars+1
     webs(index) = web;
@@ -228,33 +229,47 @@ for section_num = 1:num_sections % run through sections
         % off of cell and section. 
         if section_num == 1 && stringer_num == 1
             wing.webs(web_num).dp_area = wing.spars(section_num).area; 
-            wing.webs(web_num).dP      = 0; 
-            wing.webs(web_num).qPrime  = 0; 
+            wing.webs(web_num).dP_X    = 0; 
+            wing.webs(web_num).dP_Z    = 0;
+            wing.webs(web_num).qPrime_X  = 0; 
+            wing.webs(web_num).qPrime_Z  = 0;
         elseif section_num == 2 && stringer_num == 1
             wing.webs(web_num).dp_area = wing.spars(3).area; 
             %update this for changing shear flow connection points. 
-            wing.webs(web_num).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
-            wing.webs(web_num).qPrime  = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP; %% input value from rear spar here. 
+            wing.webs(web_num).dP_X      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).dP_Z      = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).qPrime_X  = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X; %% input value from rear spar here. 
+            wing.webs(web_num).qPrime_Z  = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         elseif section_num == 3 && stringer_num == 1
             wing.webs(web_num).dp_area = wing.spars(4).area; 
-            wing.webs(web_num).dP      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
-            wing.webs(web_num).qPrime  = 0;
+            wing.webs(web_num).dP_X      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).dP_Z      = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).qPrime_X  = 0;
+            wing.webs(web_num).qPrime_Z  = 0;
         elseif section_num == 4 && stringer_num == 1
             wing.webs(web_num).dp_area = 0; 
-            wing.webs(web_num).dP      = 0; 
-            wing.webs(web_num).qPrime  = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP;
+            wing.webs(web_num).dP_X      = 0; 
+            wing.webs(web_num).dP_Z      = 0; 
+            wing.webs(web_num).qPrime_X  = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
+            wing.webs(web_num).qPrime_Z  = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         else
             wing.webs(web_num).dp_area = wing.sections(section_num).stringers(stringer_num-1,str_area); 
-            wing.webs(web_num).dP      = get_dp(x_i - centroid_x, z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
-            wing.webs(web_num).qPrime  = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP;   
+            wing.webs(web_num).dP_X      = get_dp(x_i - centroid_x, z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).dP_Z      = get_dp(x_i - centroid_x, z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).qPrime_X  = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
+            wing.webs(web_num).qPrime_Z  = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         end
         
         wing.webs(web_num).ds            = get_ds(x_i,x_plus,mod(section_num,2)); 
         wing.webs(web_num).dS_over_t     = wing.webs(web_num).ds / wing.webs(web_num).thickness;
-        wing.webs(web_num).q_dS_over_t   = wing.webs(web_num).qPrime*wing.webs(web_num).dS_over_t; 
-        wing.webs(web_num).two_A_qprime  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime; 
-        wing.webs(web_num).qp_dx         = wing.webs(web_num).qPrime*(x_plus - x_i); 
-        wing.webs(web_num).qp_dz         = wing.webs(web_num).qPrime*(z_plus - z_i); 
+        wing.webs(web_num).q_dS_over_t_X   = wing.webs(web_num).qPrime_X*wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).q_dS_over_t_Z   = wing.webs(web_num).qPrime_Z*wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).two_A_qprime_X  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_X;
+        wing.webs(web_num).two_A_qprime_Z  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_Z;
+        wing.webs(web_num).qp_dx_X         = wing.webs(web_num).qPrime_X*(x_plus - x_i);
+        wing.webs(web_num).qp_dx_Z         = wing.webs(web_num).qPrime_Z*(x_plus - x_i);
+        wing.webs(web_num).qp_dz_X         = wing.webs(web_num).qPrime_X*(z_plus - z_i);
+        wing.webs(web_num).qp_dz_Z         = wing.webs(web_num).qPrime_Z*(z_plus - z_i);
 
         web_num = web_num+1;
 
@@ -268,14 +283,20 @@ for section_num = 1:num_sections % run through sections
         z_plus                          = get_z(x_plus, mod(section_num,2));
         wing.webs(web_num).areas        = (x_i-x_minus)*z_i/2 + abs((x_i-x_minus)*z_plus/2);
         wing.webs(web_num).dp_area      = wing.spars(2).area;
-        wing.webs(web_num).dP           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
-        wing.webs(web_num).qPrime       = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP; 
+        wing.webs(web_num).dP_X         = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).dP_Z         = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).qPrime_X     = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
+        wing.webs(web_num).qPrime_Z     = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         wing.webs(web_num).ds           = abs(z_i - z_plus); 
         wing.webs(web_num).dS_over_t    = abs(z_i - z_plus)/wing.webs(web_num).thickness;
-        wing.webs(web_num).q_dS_over_t  = wing.webs(web_num).qPrime * wing.webs(web_num).dS_over_t;
-        wing.webs(web_num).two_A_qprime  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime; 
-        wing.webs(web_num).qp_dx         = wing.webs(web_num).qPrime*(x_plus - x_i); 
-        wing.webs(web_num).qp_dz         = wing.webs(web_num).qPrime*(z_plus - z_i);
+        wing.webs(web_num).q_dS_over_t_X  = wing.webs(web_num).qPrime_X * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).q_dS_over_t_Z  = wing.webs(web_num).qPrime_Z * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).two_A_qprime_X  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_X;
+        wing.webs(web_num).two_A_qprime_Z  = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_Z;
+        wing.webs(web_num).qp_dx_X         = wing.webs(web_num).qPrime_X*(x_plus - x_i);
+        wing.webs(web_num).qp_dx_Z         = wing.webs(web_num).qPrime_Z*(x_plus - x_i);
+        wing.webs(web_num).qp_dz_X         = wing.webs(web_num).qPrime_X*(z_plus - z_i);
+        wing.webs(web_num).qp_dz_Z         = wing.webs(web_num).qPrime_Z*(z_plus - z_i);
         
         web_num = web_num + 1; 
     
@@ -287,14 +308,20 @@ for section_num = 1:num_sections % run through sections
         z_plus                          = get_z(x_plus, mod(section_num,2));
         wing.webs(web_num).areas        = 0;
         wing.webs(web_num).dp_area      = wing.spars(1).area;
-        wing.webs(web_num).dP           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
-        wing.webs(web_num).qPrime       = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP; 
+        wing.webs(web_num).dP_X           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).dP_Z           = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).qPrime_X       = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
+        wing.webs(web_num).qPrime_Z       = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         wing.webs(web_num).ds           = abs(z_i - z_plus); 
         wing.webs(web_num).dS_over_t    = abs(z_i - z_plus)/wing.webs(web_num).thickness;
-        wing.webs(web_num).q_dS_over_t  = wing.webs(web_num).qPrime * wing.webs(web_num).dS_over_t;
-        wing.webs(web_num).two_A_qprime = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime; 
-        wing.webs(web_num).qp_dx        = wing.webs(web_num).qPrime*(x_plus - x_i); 
-        wing.webs(web_num).qp_dz        = wing.webs(web_num).qPrime*(z_plus - z_i);
+        wing.webs(web_num).q_dS_over_t_X  = wing.webs(web_num).qPrime_X * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).q_dS_over_t_Z  = wing.webs(web_num).qPrime_Z * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).two_A_qprime_X = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_X;
+        wing.webs(web_num).two_A_qprime_Z = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_Z;
+        wing.webs(web_num).qp_dx_X        = wing.webs(web_num).qPrime_X*(x_plus - x_i);
+        wing.webs(web_num).qp_dx_Z        = wing.webs(web_num).qPrime_Z*(x_plus - x_i);
+        wing.webs(web_num).qp_dz_X        = wing.webs(web_num).qPrime_X*(z_plus - z_i);
+        wing.webs(web_num).qp_dz_Z        = wing.webs(web_num).qPrime_Z*(z_plus - z_i);
         
         web_num = web_num + 1;
     elseif section_num == 4
@@ -305,14 +332,20 @@ for section_num = 1:num_sections % run through sections
         z_plus                          = get_z(x_plus, mod(section_num,2));
         wing.webs(web_num).areas        = 0;
         wing.webs(web_num).dp_area      = wing.spars(4).area;
-        wing.webs(web_num).dP           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area); 
-        wing.webs(web_num).qPrime       = wing.webs(web_num-1).qPrime - wing.webs(web_num).dP; 
+        wing.webs(web_num).dP_X           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).dP_Z           = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+        wing.webs(web_num).qPrime_X       = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
+        wing.webs(web_num).qPrime_Z       = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         wing.webs(web_num).ds           = abs(z_i - z_plus); 
         wing.webs(web_num).dS_over_t    = abs(z_i - z_plus)/wing.webs(web_num).thickness;
-        wing.webs(web_num).q_dS_over_t  = wing.webs(web_num).qPrime * wing.webs(web_num).dS_over_t;
-        wing.webs(web_num).two_A_qprime = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime; 
-        wing.webs(web_num).qp_dx        = wing.webs(web_num).qPrime*(x_plus - x_i); 
-        wing.webs(web_num).qp_dz        = wing.webs(web_num).qPrime*(z_plus - z_i);
+        wing.webs(web_num).q_dS_over_t_X  = wing.webs(web_num).qPrime_X * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).q_dS_over_t_Z  = wing.webs(web_num).qPrime_Z * wing.webs(web_num).dS_over_t;
+        wing.webs(web_num).two_A_qprime_X = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_X;
+        wing.webs(web_num).two_A_qprime_Z = 2*wing.webs(web_num).areas*wing.webs(web_num).qPrime_Z;
+        wing.webs(web_num).qp_dx_X        = wing.webs(web_num).qPrime_X*(x_plus - x_i);
+        wing.webs(web_num).qp_dx_Z        = wing.webs(web_num).qPrime_Z*(x_plus - x_i); 
+        wing.webs(web_num).qp_dz_X        = wing.webs(web_num).qPrime_X*(z_plus - z_i);
+        wing.webs(web_num).qp_dz_Z        = wing.webs(web_num).qPrime_Z*(z_plus - z_i);
     end
         
 end
