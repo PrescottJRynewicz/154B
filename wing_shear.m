@@ -39,6 +39,8 @@ lower_surface   = z_camber - z_thickness;
 % This section will eventually implement methods to generate different wing
 % layouts and positions. 
 
+
+Vx = 1; Vz = 1; My = 1;  %test loads will be applied individually
 %Spar Strcuture: Includes the location and area for each spar. Ordered
 %clockwise start from top left spar. 
 num_spar_caps   = 4; 
@@ -55,8 +57,9 @@ spar4           = struct('position',[spar_pos_1,0], 'area', 0.1);
 num_sections    = 4; 
 num_stringers   = [4,4,2,2];
 num_spars       = 2; 
+spar_thick      = [ 0.04/12  0.04/12];
 
-web             = struct('areas',0,'thickness',0.0017,'dp_area',0,'dP_X',0,'dp_Z',0,'qPrime_X',0,'qPrime_Z',0,...
+web             = struct('areas',0,'thickness',0.02/12,'dp_area',0,'dP_X',0,'dp_Z',0,'qPrime_X',0,'qPrime_Z',0,...
                     'ds',0,'dS_over_t',0,'q_dS_over_t_X',0,'q_dS_over_t_Z',0,'two_A_qprime_X',0,'two_A_qprime_Z',0,'qp_dx_X',0,'qp_dx_Z',0,'qp_dz_X',0,'qp_dz_Z',0);
 webs            = web; 
 for index = 2:sum(num_stringers)+num_sections+num_spars+1
@@ -64,8 +67,8 @@ for index = 2:sum(num_stringers)+num_sections+num_spars+1
 end
 
 section1    = struct('num_str', 0,'start_pos', spar1.position(1), 'end_pos', spar2.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(1),3));
-section2    = struct('num_str', 0,'start_pos', spar1.position(1), 'end_pos', spar2.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(2),3)); 
-section3    = struct('num_str', 0,'start_pos', 0                , 'end_pos', spar1.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(3),3)); 
+section2    = struct('num_str', 0,'start_pos', spar3.position(1), 'end_pos', spar4.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(2),3)); 
+section3    = struct('num_str', 0,'start_pos', spar4.position(1), 'end_pos', 0                , 'x_length', 0, 'stringers', zeros(num_stringers(3),3)); 
 section4    = struct('num_str', 0,'start_pos', 0                , 'end_pos', spar1.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(4),3));
 
 % Variables to access stringer arrays. Faster than structures. 
@@ -88,7 +91,7 @@ wing        = struct('spars',[spar1,spar2,spar3,spar4], 'sections', [section1, s
 % This is assuming evenly spaced stringers in each section. 
 gap = linspace(0,0,num_sections); 
 for index = 1:num_sections
-    gap(index)      = (wing.sections(index).end_pos - wing.sections(index).start_pos)/(num_stringers(index)+1); 
+    gap(index)      = abs((wing.sections(index).end_pos - wing.sections(index).start_pos))/(num_stringers(index)+1); 
 end
 
 
@@ -96,9 +99,16 @@ end
 for section_num = 1:num_sections
     for stringer_num = 1:num_stringers(section_num)
         %% double check section_num = 2
-        wing.sections(section_num).stringers(stringer_num,x_pos) = wing.sections(section_num).start_pos + gap(section_num)*stringer_num;
-        wing.sections(section_num).stringers(stringer_num,z_pos) = get_z(wing.sections(section_num).stringers(stringer_num,x_pos),mod(section_num,2));
-        wing.sections(section_num).stringers(stringer_num,str_area) = 0.1; 
+        if section_num == 1 || section_num == 4
+            wing.sections(section_num).stringers(stringer_num,x_pos) = wing.sections(section_num).start_pos + gap(section_num)*stringer_num;
+            wing.sections(section_num).stringers(stringer_num,z_pos) = get_z(wing.sections(section_num).stringers(stringer_num,x_pos),1);
+            wing.sections(section_num).stringers(stringer_num,str_area) = 0.1; 
+        else
+            wing.sections(section_num).stringers(stringer_num,x_pos) = wing.sections(section_num).start_pos - gap(section_num)*stringer_num;
+            wing.sections(section_num).stringers(stringer_num,z_pos) = get_z(wing.sections(section_num).stringers(stringer_num,x_pos),0);
+            wing.sections(section_num).stringers(stringer_num,str_area) = 0.1; 
+        end
+            
     end
 end
 
@@ -163,8 +173,7 @@ end
 %% Web Calculations 
 
 %Sample Inputs
-Vx              = 1; 
-Vz              = 0; 
+
 web_num          = 1; 
 x_plus          = 0; 
 x_minus         = 0; 
@@ -188,35 +197,31 @@ for section_num = 1:num_sections % run through sections
         % define positions for stringers to calculate AREAS. 
         if stringer_num == 1 && section_num ~= 4
             x_plus  = wing.sections(section_num).stringers(stringer_num);
-            x_minus = wing.sections(section_num).start_pos;
+            x_minus = wing.sections(1).start_pos;
             x_i     = wing.sections(section_num).start_pos; 
-            z_i     = get_z(x_i, mod(section_num,2)); 
-            z_plus  = get_z(x_plus, mod(section_num,2));
-            integral= get_int(x_i,x_plus,mod(section_num,2));
-            
-            
         elseif stringer_num == (num_stringers(section_num)+1)
             x_plus  = wing.sections(section_num).end_pos;
-            x_minus = wing.sections(section_num).start_pos;
+            x_minus = wing.sections(1).start_pos;
             x_i     = wing.sections(section_num).stringers(stringer_num-1); 
-            z_i     = get_z(x_i, mod(section_num,2)); 
-            z_plus  = get_z(x_plus, mod(section_num,2));
-            integral= get_int(x_i,x_plus,mod(section_num,2));
         elseif section_num == 4 && stringer_num == 1
             x_i         = 0;
             x_plus      = wing.sections(section_num).stringers(stringer_num);
             x_minus     = wing.spars(1).position(x_pos);
-            z_i     = get_z(x_i, mod(section_num,2)); 
-            z_plus  = get_z(x_plus, mod(section_num,2));
-            integral= get_int(x_i,x_plus,mod(section_num,2));
         else
             x_plus  = wing.sections(section_num).stringers(stringer_num);
-            x_minus = wing.sections(section_num).start_pos;
+            x_minus = wing.sections(1).start_pos;
             x_i     = wing.sections(section_num).stringers(stringer_num-1); 
-            z_i     = get_z(x_i, mod(section_num,2)); 
-            z_plus  = get_z(x_plus, mod(section_num,2));
-            integral = get_int(x_i,x_plus,mod(section_num,2));
         end
+
+        if section_num == 1 || section_num == 4
+            integral = get_int(x_i,x_plus,1);
+            z_i     = get_z(x_i,1); 
+            z_plus  = get_z(x_plus, 1);
+        else
+            integral = get_int(x_i,x_plus,0);
+            z_i     = get_z(x_i,0); 
+            z_plus  = get_z(x_plus,0);
+        end      
         
         % Sum areas from triangles and integrals above. 
         if section_num == 1 || section_num == 3
@@ -229,8 +234,8 @@ for section_num = 1:num_sections % run through sections
         % off of cell and section. 
         if section_num == 1 && stringer_num == 1
             wing.webs(web_num).dp_area = wing.spars(section_num).area; 
-            wing.webs(web_num).dP_X    = 0; 
-            wing.webs(web_num).dP_Z    = 0;
+            wing.webs(web_num).dP_X      = 0; 
+            wing.webs(web_num).dP_Z      = 0;
             wing.webs(web_num).qPrime_X  = 0; 
             wing.webs(web_num).qPrime_Z  = 0;
         elseif section_num == 2 && stringer_num == 1
@@ -242,8 +247,8 @@ for section_num = 1:num_sections % run through sections
             wing.webs(web_num).qPrime_Z  = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         elseif section_num == 3 && stringer_num == 1
             wing.webs(web_num).dp_area = wing.spars(4).area; 
-            wing.webs(web_num).dP_X      = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
-            wing.webs(web_num).dP_Z      = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
+            wing.webs(web_num).dP_X      = 0;
+            wing.webs(web_num).dP_Z      = 0;
             wing.webs(web_num).qPrime_X  = 0;
             wing.webs(web_num).qPrime_Z  = 0;
         elseif section_num == 4 && stringer_num == 1
@@ -259,8 +264,11 @@ for section_num = 1:num_sections % run through sections
             wing.webs(web_num).qPrime_X  = wing.webs(web_num-1).qPrime_X - wing.webs(web_num).dP_X;
             wing.webs(web_num).qPrime_Z  = wing.webs(web_num-1).qPrime_Z - wing.webs(web_num).dP_Z;
         end
-        
-        wing.webs(web_num).ds            = get_ds(x_i,x_plus,mod(section_num,2)); 
+        if section_num ==1 || section_num == 4
+            wing.webs(web_num).ds            = get_ds(x_i,x_plus,1); 
+        else
+            wing.webs(web_num).ds            = get_ds(x_i,x_plus,0);
+        end
         wing.webs(web_num).dS_over_t     = wing.webs(web_num).ds / wing.webs(web_num).thickness;
         wing.webs(web_num).q_dS_over_t_X   = wing.webs(web_num).qPrime_X*wing.webs(web_num).dS_over_t;
         wing.webs(web_num).q_dS_over_t_Z   = wing.webs(web_num).qPrime_Z*wing.webs(web_num).dS_over_t;
@@ -276,12 +284,14 @@ for section_num = 1:num_sections % run through sections
     end
     
     if section_num == 1
-        x_plus                          = wing.spars(3).position(x_pos); 
+        x_plus                          = wing.spars(3).position(x_pos);
         x_minus                         = wing.sections(section_num).start_pos;
         x_i                             = wing.spars(2).position(x_pos); 
-        z_i                             = get_z(x_i, mod(section_num,2)); 
-        z_plus                          = get_z(x_plus, mod(section_num,2));
-        wing.webs(web_num).areas        = (x_i-x_minus)*z_i/2 + abs((x_i-x_minus)*z_plus/2);
+        z_i                             = get_z(x_i, 1); 
+        z_plus                          = get_z(x_plus,0);
+        
+        wing.webs(web_num).thickness    = spar_thick(2);
+        wing.webs(web_num).areas        = (x_i-x_minus)*z_i/2 + abs((x_i-x_minus)*wing.spars(3).position(z_pos)/2);
         wing.webs(web_num).dp_area      = wing.spars(2).area;
         wing.webs(web_num).dP_X         = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
         wing.webs(web_num).dP_Z         = get_dp(x_i - centroid_x,z_i-centroid_z,0,Vz,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
@@ -304,8 +314,9 @@ for section_num = 1:num_sections % run through sections
         x_plus                          = wing.spars(1).position(x_pos); 
         x_minus                         = wing.sections(section_num).start_pos;
         x_i                             = wing.spars(4).position(x_pos); 
-        z_i                             = get_z(x_i, mod(section_num,2)); 
-        z_plus                          = get_z(x_plus, mod(section_num,2));
+        z_i                             = get_z(x_i, 0); 
+        z_plus                          = get_z(x_plus, 1);
+        wing.webs(web_num).thickness    = spar_thick(1);
         wing.webs(web_num).areas        = 0;
         wing.webs(web_num).dp_area      = wing.spars(1).area;
         wing.webs(web_num).dP_X           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
@@ -328,8 +339,9 @@ for section_num = 1:num_sections % run through sections
         x_plus                          = wing.spars(4).position(x_pos); 
         x_minus                         = wing.sections(section_num).start_pos;
         x_i                             = wing.spars(1).position(x_pos); 
-        z_i                             = get_z(x_i, mod(section_num,2)); 
-        z_plus                          = get_z(x_plus, mod(section_num,2));
+        z_i                             = get_z(x_i, 1); 
+        z_plus                          = get_z(x_plus, 0);
+        wing.webs(web_num).thickness    = spar_thick(1);
         wing.webs(web_num).areas        = 0;
         wing.webs(web_num).dp_area      = wing.spars(4).area;
         wing.webs(web_num).dP_X           = get_dp(x_i - centroid_x,z_i-centroid_z,Vx,0,Ix,Iz,Ixz,wing.webs(web_num).dp_area);
@@ -349,6 +361,10 @@ for section_num = 1:num_sections % run through sections
     end
         
 end
+
+Fx      = sum([wing.webs.qp_dx_X]);
+Fz      = sum([wing.webs.qp_dx_Z]);
+
 
 %% Plots
 % 

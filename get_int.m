@@ -9,6 +9,13 @@ a2 = -0.3516;
 a3 = 0.2843;
 a4 = -0.1015;
 
+if (xi > xf)
+    copy = xi;
+    xi = xf; 
+    xf = copy;
+end
+
+
 
 %evaluate the integral of camber line, depending on xi and xf related to P
 

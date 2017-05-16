@@ -234,6 +234,7 @@ for i=1:(numStringers+1)
         web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
     
+
     tempInt = get_int(web(i).xEnd,web(i).xStart,0);  %integral of airfoil function
     triangle2 = abs((web(i).xStart - sparCaps(1).posX)*web(i).zStart/2);
     triangle1 = abs((web(i).xEnd - sparCaps(1).posX)*web(i).zEnd/2);
@@ -316,9 +317,11 @@ for i=1:(numStringers+1)
         web(i).qPrime_X = web(i-1).qPrime_X - web(i).dP_X;
         web(i).qPrime_Z = web(i-1).qPrime_Z - web(i).dP_Z;
     end
+
     tempInt = get_int(web(i).xEnd,web(i).xStart,0);  %integral of airfoil function
     triangle1 = abs((web(i).xStart - sparCaps(2).posX)*web(i).zStart/2);
     triangle2 = abs((web(i).xEnd - sparCaps(2).posX)*web(i).zEnd/2);
+    disp(tempInt);
     web(i).Area = tempInt + triangle1 - triangle2;
     web(i).ds = get_ds(web(i).xStart,web(i).xEnd,0);
     web(i).dS_over_t = web(i).ds / web(i).thickness;
@@ -419,10 +422,10 @@ web = [];
 
 Fx = sum([webTop.qp_dx_X])+webRearSpar.qp_dx_X+ sum([webBottom.qp_dx_X])+webFrontSpar.qp_dx_X;  %cell 1
 Fx = Fx + sum([webLowerNose.qp_dx_X])+ sum([webUpperNose.qp_dx_X]);  %cell 2
-%Fx
+Fx
 Fz = sum([webTop.qp_dz_X])+webRearSpar.qp_dz_X+ sum([webBottom.qp_dz_X])+webFrontSpar.qp_dz_X;  %cell 1
 Fz = Fz + sum([webLowerNose.qp_dz_X])+ sum([webUpperNose.qp_dz_X]);  %cell 2
-%Fz
+Fz
 %%
 
 % sum up the ds/t and  q*ds/t to solve 2 equations, 2 unknowns
