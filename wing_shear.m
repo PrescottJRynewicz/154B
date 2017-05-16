@@ -3,7 +3,7 @@
 % MAE 154B
 % Wing Analysis and Optimization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-close all; clear all; clc;
+close all; clear all; %clc;
 
 % V_n_PDR;
 
@@ -41,19 +41,19 @@ lower_surface   = z_camber - z_thickness;
 
 %Spar Strcuture: Includes the location and area for each spar. Ordered
 %clockwise start from top left spar. 
-num_spars   = 4; 
-spar_pos_1  = 0.2; 
-spar_pos_2  = 0.7; 
-spar1       = struct('position',[spar_pos_1,0], 'area', 1); 
-spar2       = struct('position',[spar_pos_2,0], 'area', 1); 
-spar3       = struct('position',[spar_pos_2,0], 'area', 1); 
-spar4       = struct('position',[spar_pos_1,0], 'area', 1); 
+num_spar_caps   = 4; 
+spar_pos_1      = 0.2; 
+spar_pos_2      = 0.7; 
+spar1           = struct('position',[spar_pos_1,0], 'area', 0.1); 
+spar2           = struct('position',[spar_pos_2,0], 'area', 0.1); 
+spar3           = struct('position',[spar_pos_2,0], 'area', 0.1); 
+spar4           = struct('position',[spar_pos_1,0], 'area', 0.1); 
 
 % Section Struct. Includes the number os stringers, where the section
 % start, the web thickness, and arrays of stringer and web objects. 
 
 num_sections    = 4; 
-num_stringers   = [5,5,3,3];
+num_stringers   = [4,4,2,2];
 num_spars       = 2; 
 
 web             = struct('areas',0,'thickness',0.0017,'dp_area',0,'dP_X',0,'dp_Z',0,'qPrime_X',0,'qPrime_Z',0,...
@@ -98,7 +98,7 @@ for section_num = 1:num_sections
         %% double check section_num = 2
         wing.sections(section_num).stringers(stringer_num,x_pos) = wing.sections(section_num).start_pos + gap(section_num)*stringer_num;
         wing.sections(section_num).stringers(stringer_num,z_pos) = get_z(wing.sections(section_num).stringers(stringer_num,x_pos),mod(section_num,2));
-        wing.sections(section_num).stringers(stringer_num,str_area) = 1; 
+        wing.sections(section_num).stringers(stringer_num,str_area) = 0.1; 
     end
 end
 
@@ -129,7 +129,7 @@ for section_num = 1:num_sections
         centroid_z_area_sum=centroid_z_area_sum+wing.sections(section_num).stringers(stringer_num,str_area);
     end
 end
-for section_num = 1:num_spars
+for section_num = 1:num_spar_caps
     centroid_x = centroid_x + wing.spars(section_num).position(x_pos)*wing.spars(section_num).area;
     centroid_x_area_sum = centroid_x_area_sum + wing.spars(section_num).area;
     
@@ -154,7 +154,7 @@ for section_num = 1:num_sections
             (wing.sections(section_num).stringers(stringer_num,x_pos)-centroid_x);
     end
 end
-for section_num = 1:num_spars
+for section_num = 1:num_spar_caps
     Ix = Ix + wing.spars(section_num).area*(wing.spars(section_num).position(z_pos)-centroid_z)^2; 
     Iz = Iz + wing.spars(section_num).area*(wing.spars(section_num).position(x_pos)-centroid_x)^2; 
     Ixz = Ixz + wing.spars(section_num).area*(wing.spars(section_num).position(x_pos)-centroid_x)*...

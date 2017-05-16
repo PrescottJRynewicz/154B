@@ -419,10 +419,10 @@ web = [];
 
 Fx = sum([webTop.qp_dx_X])+webRearSpar.qp_dx_X+ sum([webBottom.qp_dx_X])+webFrontSpar.qp_dx_X;  %cell 1
 Fx = Fx + sum([webLowerNose.qp_dx_X])+ sum([webUpperNose.qp_dx_X]);  %cell 2
-Fx
+%Fx
 Fz = sum([webTop.qp_dz_X])+webRearSpar.qp_dz_X+ sum([webBottom.qp_dz_X])+webFrontSpar.qp_dz_X;  %cell 1
 Fz = Fz + sum([webLowerNose.qp_dz_X])+ sum([webUpperNose.qp_dz_X]);  %cell 2
-Fz
+%Fz
 %%
 
 % sum up the ds/t and  q*ds/t to solve 2 equations, 2 unknowns
@@ -504,35 +504,35 @@ qt_Z = [q1t;q2t];
 
 %end
 
-sc
+%sc
 
 
 %plotting airfoil cross-section
 
-xChord = 0:.01:1;
-upperSurface = zeros(1,length(xChord));
-lowerSurface = zeros(1,length(xChord));
-
-for i=1:length(xChord)
-    upperSurface(i) = get_z(xChord(i),1);
-    lowerSurface(i) = get_z(xChord(i),0);
-end
-
-figure; hold on; axis equal; grid on;
-%plot(xChord,z_camber,'-')
-plot(xChord,upperSurface,'-')
-plot(xChord,lowerSurface,'-')
-
-plot([sparCaps(1).posX sparCaps(2).posX],[sparCaps(1).posZ sparCaps(2).posZ],'-')
-plot([sparCaps(3).posX sparCaps(4).posX],[sparCaps(3).posZ sparCaps(4).posZ],'-')
-plot([sparCaps.posX],[sparCaps.posZ],'o')
-plot([topStringers.posX],[topStringers.posZ],'or')
-plot([bottomStringers.posX],[bottomStringers.posZ],'or')
-plot([noseTopStringers.posX],[noseTopStringers.posZ],'or')
-plot([noseBottomStringers.posX],[noseBottomStringers.posZ],'or')
-plot(centroid.posX,centroid.posZ,'rx')
-plot(sc.posX,sc.posZ,'gx')
-
+% xChord = 0:.01:1;
+% upperSurface = zeros(1,length(xChord));
+% lowerSurface = zeros(1,length(xChord));
+% 
+% for i=1:length(xChord)
+%     upperSurface(i) = get_z(xChord(i),1);
+%     lowerSurface(i) = get_z(xChord(i),0);
+% end
+% 
+% figure; hold on; axis equal; grid on;
+% %plot(xChord,z_camber,'-')
+% plot(xChord,upperSurface,'-')
+% plot(xChord,lowerSurface,'-')
+% 
+% plot([sparCaps(1).posX sparCaps(2).posX],[sparCaps(1).posZ sparCaps(2).posZ],'-')
+% plot([sparCaps(3).posX sparCaps(4).posX],[sparCaps(3).posZ sparCaps(4).posZ],'-')
+% plot([sparCaps.posX],[sparCaps.posZ],'o')
+% plot([topStringers.posX],[topStringers.posZ],'or')
+% plot([bottomStringers.posX],[bottomStringers.posZ],'or')
+% plot([noseTopStringers.posX],[noseTopStringers.posZ],'or')
+% plot([noseBottomStringers.posX],[noseBottomStringers.posZ],'or')
+% plot(centroid.posX,centroid.posZ,'rx')
+% plot(sc.posX,sc.posZ,'gx')
+% 
 
 
 
