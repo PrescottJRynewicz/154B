@@ -62,7 +62,12 @@ spar_thick      = [ 0.04/12  0.04/12];
 web             = struct('areas',0,'thickness',0.02/12,'dp_area',0,'dP_X',0,'dp_Z',0,'qPrime_X',0,'qPrime_Z',0,...
                     'ds',0,'dS_over_t',0,'q_dS_over_t_X',0,'q_dS_over_t_Z',0,'two_A_qprime_X',0,'two_A_qprime_Z',0,'qp_dx_X',0,'qp_dx_Z',0,'qp_dz_X',0,'qp_dz_Z',0);
 webs            = web; 
-for index = 2:sum(num_stringers)+num_sections+num_spars+1
+
+cell_1_webs     = sum(num_stringers(1:2)) + 4;
+cell_2_webs     = sum(num_stringers(3:4)) + 3;
+total_webs      = cell_1_webs + cell_2_webs; 
+
+for index = 2:total_webs
     webs(index) = web;
 end
 
@@ -314,7 +319,7 @@ for section_num = 1:num_sections % run through sections
         x_plus                          = wing.spars(1).position(x_pos); 
         x_minus                         = wing.sections(section_num).start_pos;
         x_i                             = wing.spars(4).position(x_pos); 
-        z_i                             = get_z(x_i, 0); 
+        z_i                             = get_z(x_i, 0);
         z_plus                          = get_z(x_plus, 1);
         wing.webs(web_num).thickness    = spar_thick(1);
         wing.webs(web_num).areas        = 0;
@@ -336,10 +341,10 @@ for section_num = 1:num_sections % run through sections
         
         web_num = web_num + 1;
     elseif section_num == 4
-        x_plus                          = wing.spars(4).position(x_pos); 
+        x_plus                          = wing.spars(1).position(x_pos); 
         x_minus                         = wing.sections(section_num).start_pos;
         x_i                             = wing.spars(1).position(x_pos); 
-        z_i                             = get_z(x_i, 1); 
+        z_i                             = get_z(x_i, 1) ;
         z_plus                          = get_z(x_plus, 0);
         wing.webs(web_num).thickness    = spar_thick(1);
         wing.webs(web_num).areas        = 0;
@@ -358,23 +363,31 @@ for section_num = 1:num_sections % run through sections
         wing.webs(web_num).qp_dx_Z        = wing.webs(web_num).qPrime_Z*(x_plus - x_i); 
         wing.webs(web_num).qp_dz_X        = wing.webs(web_num).qPrime_X*(z_plus - z_i);
         wing.webs(web_num).qp_dz_Z        = wing.webs(web_num).qPrime_Z*(z_plus - z_i);
+        web_num = web_num + 1;
     end
         
 end
 
-Fx      = sum([wing.webs.qp_dx_X]);
-Fz      = sum([wing.webs.qp_dx_Z]);
+Fx          = sum([wing.webs.qp_dx_X]);
+Fz          = sum([wing.webs.qp_dx_Z]);
+
+dS_over_t   = [wing.webs.dS_over_t];
+A11         = sum(dS_over_t(1:cell_1_webs));
+A22         = sum(dS_over_t(cell_1_webs+1:total_webs));
+A12         = -dS_over_t(cell_1_webs);
+A21         = -dS_over_t(end);
+
 
 
 %% Plots
-% 
+
 % figure; hold on; axis equal; grid on;
 % plot(x_chord,upper_surface,'-')
 % plot(x_chord,lower_surface,'-')
 % for index = 1:num_sections
 %     scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
 % end
-% for index = 1:num_spars
+% for index = 1:num_spar_caps
 %     scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
 % end
 % scatter(centroid_x,centroid_z,'x')
