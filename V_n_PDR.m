@@ -18,6 +18,7 @@ Vc                      = 230;                      % [ft/s]
 Vd                      = 270;                      % [ft/s]
 Re                      = Vc*c/mu;                  % []
 e                       = 0.79;                     % []
+q                       = 0.5*rho*Vc^2;             % [kg*/(m*s^2)]
 
 %% XFoil Results
 xfoil_results = dlmread('naca2412_2.pol');
@@ -83,28 +84,28 @@ g_30_plus               = 1+kg*rho*30*Cza*S/(2*W).*vfps;
 g_50_minus              = 1-kg*rho*50*Cza*S/(2*W).*vfps;
 g_30_minus              = 1-kg*rho*30*Cza*S/(2*W).*vfps;
 
-figure; grid on; hold on;set(gcf,'color',[1 1 1]);
+% figure; grid on; hold on;set(gcf,'color',[1 1 1]);
+% 
+% tempInd = find(n_lift<lim_load_plus); plot(v(tempInd),n_lift(tempInd),'linewidth',2); 
+% tempInd = find(n_neg>lim_load_minus); plot(v(tempInd),n_neg(tempInd),'linewidth',2);
+% 
+% tempInd = find(n_lift>lim_load_plus,1); plot([v(tempInd) v(end)],[lim_load_plus lim_load_plus],'linewidth',2);
+% 
+% tempInd = find(n_neg<lim_load_minus,1); plot([v(tempInd) Vc],[lim_load_minus lim_load_minus],'linewidth',2);
 
-tempInd = find(n_lift<lim_load_plus); plot(v(tempInd),n_lift(tempInd),'linewidth',2); 
-tempInd = find(n_neg>lim_load_minus); plot(v(tempInd),n_neg(tempInd),'linewidth',2);
-
-tempInd = find(n_lift>lim_load_plus,1); plot([v(tempInd) v(end)],[lim_load_plus lim_load_plus],'linewidth',2);
-
-tempInd = find(n_neg<lim_load_minus,1); plot([v(tempInd) Vc],[lim_load_minus lim_load_minus],'linewidth',2);
-
-plot([Vd Vd],[-1 lim_load_plus],'linewidth',2)
-plot([Vc Vd],[lim_load_minus -1],'linewidth',2)
-plot(v(1:230),g_50_plus(1:230),'--g','linewidth',2)
-plot(v(1:270),g_30_plus(1:270),'--g','linewidth',2)
-plot(v(1:230),g_50_minus(1:230),'--g','linewidth',2)
-plot(v(1:270),g_30_minus(1:270),'--g','linewidth',2)
-plot([Vc Vd],[g_50_plus(230) g_30_plus(270)],'--g','linewidth',2)
-plot([Vc Vd],[g_50_minus(230) g_30_minus(270)],'--g','linewidth',2)
-
-plot([230 230],[lim_load_minus lim_load_plus],'--r','linewidth',1)
-xlabel('V (mph)','fontsize',16,'fontweight','bold');ylabel('n','fontsize',16,'fontweight','bold')
-set(gca,'FontSize',16,'fontweight','bold');
-ylim([-4 6])
+% plot([Vd Vd],[-1 lim_load_plus],'linewidth',2)
+% plot([Vc Vd],[lim_load_minus -1],'linewidth',2)
+% plot(v(1:230),g_50_plus(1:230),'--g','linewidth',2)
+% plot(v(1:270),g_30_plus(1:270),'--g','linewidth',2)
+% plot(v(1:230),g_50_minus(1:230),'--g','linewidth',2)
+% plot(v(1:270),g_30_minus(1:270),'--g','linewidth',2)
+% plot([Vc Vd],[g_50_plus(230) g_30_plus(270)],'--g','linewidth',2)
+% plot([Vc Vd],[g_50_minus(230) g_30_minus(270)],'--g','linewidth',2)
+% 
+% plot([230 230],[lim_load_minus lim_load_plus],'--r','linewidth',1)
+% xlabel('V (mph)','fontsize',16,'fontweight','bold');ylabel('n','fontsize',16,'fontweight','bold')
+% set(gca,'FontSize',16,'fontweight','bold');
+% ylim([-4 6])
 
 
 %% Critical Points
@@ -119,7 +120,7 @@ for index1 = 1:length(v_vec)
     current_Cn          = Cn_vec(index1);
     current_diff        = 100; 
     current_diff_index  = 1;
-    for index2 = 1:length(Cn)
+    for index2 = 1:length(Cn) 
         if (abs((current_Cn - Cn(index2))) < current_diff)
             current_diff_index = index2; 
             current_diff = abs((current_Cn - Cn(index2)));
@@ -129,21 +130,28 @@ for index1 = 1:length(v_vec)
 end
 
 Cx_vec                  = (Cx(Cx_pos));
+Cm_vec                  = (Cm(Cx_pos)); 
 
 % Critical Points
-Fz_crit      = n_vec.*W;          % [lb]
-Fx_crit      = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
+Fz_crit         = n_vec.*W;          % [lb]
+Fx_crit         = 0.5*rho.*v_vec.^2.*S.*Cx_vec;
+My_crit         = 0.5*rho.*v_vec.^2.*S.*c.*Cm_vec; 
 
 %% Code to calc lift distribution, Shear and Bending Moments
-
-y                       =0:0.01:b/2;
+diff                    = 0.1; 
+y                       = 0:diff:b/2;
 length_y                = length(y); 
 Fz                      = zeros(length_y,length(Cx_vec)); 
 Fx                      = zeros(length_y,length(Cx_vec)); 
+My                      = zeros(length_y,length(Cx_vec)); 
 shearx                  = zeros(length_y,length(Cx_vec)); 
 momentx                 = zeros(length_y,length(Cx_vec));
 shearz                  = zeros(length_y,length(Cx_vec)); 
 momentz                 = zeros(length_y,length(Cx_vec));
+
+My_slope                = My_crit./b./2; 
+
+My(1,:)                 = My_crit;
 
 for index=1:length(Cx_vec)
     n                   =n_vec(index);
@@ -162,6 +170,9 @@ for index=1:length(Cx_vec)
     %Bending Moment and Shear Force in z-Direction 
     shearz(:,index)     =-cumsum(Fz(:,index));
     momentz(:,index)    =-cumsum(shearz(:,index));
+    for index2 = 2:length_y
+        My(index2,index) = My(index2-1,index) - diff*My_slope(index);
+    end
 end
 
 %% Plots 

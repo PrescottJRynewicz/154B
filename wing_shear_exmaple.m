@@ -421,8 +421,8 @@ web = [];
 Fx = sum([webTop.qp_dx_X])+webRearSpar.qp_dx_X+ sum([webBottom.qp_dx_X])+webFrontSpar.qp_dx_X;  %cell 1
 Fx = Fx + sum([webLowerNose.qp_dx_X])+ sum([webUpperNose.qp_dx_X]);  %cell 2
 %Fx
-Fz = sum([webTop.qp_dz_X])+webRearSpar.qp_dz_X+ sum([webBottom.qp_dz_X])+webFrontSpar.qp_dz_X;  %cell 1
-Fz = Fz + sum([webLowerNose.qp_dz_X])+ sum([webUpperNose.qp_dz_X]);  %cell 2
+Fz = sum([webTop.qp_dz_Z])+webRearSpar.qp_dz_Z+ sum([webBottom.qp_dz_Z])+webFrontSpar.qp_dz_Z;  %cell 1
+Fz = Fz + sum([webLowerNose.qp_dz_Z])+ sum([webUpperNose.qp_dz_Z]);  %cell 2
 %Fz
 %%
 
@@ -469,6 +469,7 @@ sc.posZ =  sum_2_a_q_X / Vx;
  
 torque_Z = Vz*(sc.posX - 0.25);
 torque_X = Vx*sc.posZ;
+torque_Y = My; 
 
 
 Area1 = sum([webTop.Area]) + webRearSpar.Area + sum([webBottom.Area]);
@@ -491,22 +492,22 @@ q2t = torque_Z/(2*Area1*q1t_over_q2t + 2*Area2);
 q1t = q2t*q1t_over_q2t;
 qt_Z = [q1t;q2t];
 
+q2t             = torque_Y/(2*Area1*q1t_over_q2t + 2*Area2);
+q1t             = q2t*q1t_over_q2t;
+qt_Y            = [q1t;q2t];
 
+qs              = qs_X + qs_Z; 
+qt              = qt_X + qt_Z + qt_Y; 
 
 % --- - add up all shear flows:  qtot = qPrime + qt + qs
-
-
-
 
 %--- insert force balance to check total shear flows --- 
 
 % --- -- 
 
-
 %end
 
 %sc
-
 
 %plotting airfoil cross-section
 
