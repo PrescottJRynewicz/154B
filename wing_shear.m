@@ -18,7 +18,7 @@ a3          = 0.2843;
 a4          = -0.1015;
 
 % array for shape
-h           =.001;
+h           = 0.01;
 x_chord     = 0:h:1;
 z_camber    = 0:h:1; 
 z_thickness = 0:h:1;
@@ -34,6 +34,10 @@ end
 upper_surface   = z_camber + z_thickness;
 lower_surface   = z_camber - z_thickness;
 
+% x_chord = x_chord*c; 
+% upper_surface = upper_surface*c; 
+% lower_surface = lower_surface*c; 
+% span    = linspace(0,b/2,length(x_chord));
 
 %% Define Wing Structures
 % This section will eventually implement methods to generate different wing
@@ -217,8 +221,6 @@ for section_num = 1:num_sections % run through sections
             x_i     = wing.sections(section_num).stringers(stringer_num-1); 
         end
 
-        wing.webs(web_num).start_x = x_i;
-        wing.webs(web_num).start_z = z_i;
         if section_num == 1 || section_num == 4
             integral = get_int(x_i,x_plus,1);
             z_i     = get_z(x_i,1); 
@@ -227,7 +229,9 @@ for section_num = 1:num_sections % run through sections
             integral = get_int(x_i,x_plus,0);
             z_i     = get_z(x_i,0); 
             z_plus  = get_z(x_plus,0);
-        end      
+        end   
+        wing.webs(web_num).start_x = x_i;
+        wing.webs(web_num).start_z = z_i;
         
         % Sum areas from triangles and integrals above. 
         if section_num == 1 || section_num == 3
@@ -461,26 +465,39 @@ total_shear_Y(cell_1_webs+1:total_webs) = qt_Y(2);% + qs_X(2) + qPrime_X(cell_1_
 %% Calculate shear flows for all wing loading distrubutions
 % Need to find corresponding values for My in PDR code to be able to create
 % linear ramp for My. This is then used for all final shear flow calcs. 
-% Create some plots, and send that shit off bitch. 
+% Create some plots, and send that shit off bitch. https://www.mathworks.com/help/matlab/ref/contour3.html
+% use contour. 
 
-total_shear                             = zeros(length_y, total_webs); 
+total_shear_1                             = zeros(length_y, total_webs);
+total_shear_2                             = zeros(length_y, total_webs);
+total_shear_3                             = zeros(length_y, total_webs);
+total_shear_4                             = zeros(length_y, total_webs);
+total_shear_5                             = zeros(length_y, total_webs);
+total_shear_6                             = zeros(length_y, total_webs);
+ 
 for index1 = 1:length_y
-    total_shear(index1,:) = total_shear_X*Fx(index1) + total_shear_Z*Fz(index1) + total_shear_Y*My(index1);
+    total_shear_1(index1,:) = total_shear_X*Fx(index1,1) + total_shear_Z*Fz(index1,1) + total_shear_Y*My(index1,1);
+    total_shear_2(index1,:) = total_shear_X*Fx(index1,2) + total_shear_Z*Fz(index1,2) + total_shear_Y*My(index1,2);
+    total_shear_3(index1,:) = total_shear_X*Fx(index1,3) + total_shear_Z*Fz(index1,3) + total_shear_Y*My(index1,3);
+    total_shear_4(index1,:) = total_shear_X*Fx(index1,4) + total_shear_Z*Fz(index1,4) + total_shear_Y*My(index1,4);
+    total_shear_5(index1,:) = total_shear_X*Fx(index1,5) + total_shear_Z*Fz(index1,5) + total_shear_Y*My(index1,5);
+    total_shear_6(index1,:) = total_shear_X*Fx(index1,6) + total_shear_Z*Fz(index1,6) + total_shear_Y*My(index1,6);
 end
 
 
+
 %% Plots
-% 
-% figure; hold on; axis equal; grid on;
-% plot(x_chord,upper_surface,'-')
-% plot(x_chord,lower_surface,'-')
-% plot([wing.spars(1).position(x_pos) wing.spars(4).position(x_pos)],[wing.spars(1).position(z_pos) wing.spars(4).position(z_pos)],'-')
-% plot([wing.spars(2).position(x_pos) wing.spars(3).position(x_pos)],[wing.spars(2).position(z_pos) wing.spars(3).position(z_pos)],'-')
-% for index = 1:num_sections
-%     scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
-% end
-% for index = 1:num_spar_caps
-%     scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
-% end
-% scatter(centroid_x,centroid_z,'x')
-% hold on; xlim([0 1]); ylim([-0.4 0.4]); 
+
+figure; hold on; axis equal; grid on;
+plot(x_chord,upper_surface,'-')
+plot(x_chord,lower_surface,'-')
+plot([wing.spars(1).position(x_pos) wing.spars(4).position(x_pos)],[wing.spars(1).position(z_pos) wing.spars(4).position(z_pos)],'-')
+plot([wing.spars(2).position(x_pos) wing.spars(3).position(x_pos)],[wing.spars(2).position(z_pos) wing.spars(3).position(z_pos)],'-')
+for index = 1:num_sections
+    scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
+end
+for index = 1:num_spar_caps
+    scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
+end
+scatter(centroid_x,centroid_z,'x')
+hold on; xlim([0 1]); ylim([-0.4 0.4]); 
