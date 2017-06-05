@@ -538,6 +538,28 @@ for spars = 1:num_spar_caps
     index = index + 1; 
 end
         
+% Rib spacing: Have 6 ribs per wing: 1 Rib every 17/6 = 2.833 feet. 
+% Column Buckling for stringers
+
+num_ribs = 6; 
+rib_spacing = b/2/num_ribs; 
+avg1        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+avg2        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+avg3        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+avg4        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+avg5        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+avg6        =  zeros(num_ribs,(num_spar_caps + sum(num_stringers)));
+index2      = 1; 
+for section_num = 1:num_sections % run through sections
+    for stringer_num = 1:(num_stringers(section_num)) % run through webs.
+        % Average Bending between each rib. 
+        for avg = 1:num_ribs
+            avg1(avg,index2) = b
+        
+        
+    end
+end
+
 
 %% Plots
 % figure; hold on; axis equal; grid on;
