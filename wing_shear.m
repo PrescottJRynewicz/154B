@@ -50,10 +50,10 @@ Vx = 1; Vz = 1; My_test = 1;  %test loads will be applied individually
 num_spar_caps   = 4; 
 spar_pos_1      = 0.2; 
 spar_pos_2      = 0.7; 
-spar1           = struct('position',[spar_pos_1,0], 'area', 0.1); 
-spar2           = struct('position',[spar_pos_2,0], 'area', 0.1); 
-spar3           = struct('position',[spar_pos_2,0], 'area', 0.1); 
-spar4           = struct('position',[spar_pos_1,0], 'area', 0.1); 
+spar1           = struct('position',[spar_pos_1,0], 'area', 0.1, 'bending_spars', linspace(0,0,6)); 
+spar2           = struct('position',[spar_pos_2,0], 'area', 0.1, 'bending_spars', linspace(0,0,6)); 
+spar3           = struct('position',[spar_pos_2,0], 'area', 0.1, 'bending_spars', linspace(0,0,6)); 
+spar4           = struct('position',[spar_pos_1,0], 'area', 0.1, 'bending_spars', linspace(0,0,6)); 
 
 % Section Struct. Includes the number os stringers, where the section
 % start, the web thickness, and arrays of stringer and web objects. 
@@ -76,10 +76,10 @@ for index = 2:total_webs
     webs(index) = web;
 end
 
-section1        = struct('num_str', 0,'start_pos', spar1.position(1), 'end_pos', spar2.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(1),3));
-section2        = struct('num_str', 0,'start_pos', spar3.position(1), 'end_pos', spar4.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(2),3)); 
-section3        = struct('num_str', 0,'start_pos', spar4.position(1), 'end_pos', 0                , 'x_length', 0, 'stringers', zeros(num_stringers(3),3)); 
-section4        = struct('num_str', 0,'start_pos', 0                , 'end_pos', spar1.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(4),3));
+section1        = struct('num_str', 0,'start_pos', spar1.position(1), 'end_pos', spar2.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(1),3), 'bending_stringers',zeros(num_stringers(1),6));
+section2        = struct('num_str', 0,'start_pos', spar3.position(1), 'end_pos', spar4.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(2),3), 'bending_stringers',zeros(num_stringers(1),6)); 
+section3        = struct('num_str', 0,'start_pos', spar4.position(1), 'end_pos', 0                , 'x_length', 0, 'stringers', zeros(num_stringers(3),3), 'bending_stringers',zeros(num_stringers(1),6)); 
+section4        = struct('num_str', 0,'start_pos', 0                , 'end_pos', spar1.position(1), 'x_length', 0, 'stringers', zeros(num_stringers(4),3), 'bending_stringers',zeros(num_stringers(1),6));
 
 % Variables to access stringer arrays. Faster than structures. 
 x_pos           = 1; 
@@ -484,20 +484,72 @@ for index1 = 1:length_y
     total_shear_6(index1,:) = total_shear_X*Fx(index1,6) + total_shear_Z*Fz(index1,6) + total_shear_Y*My(index1,6);
 end
 
+%Convert shear stress from shear flow. 
+for index1 = 1:total_webs
+    total_shear_1(:,index1) = total_shear_1(:,index1)/wing.webs(index1).thickness;
+    total_shear_2(:,index1) = total_shear_2(:,index1)/wing.webs(index1).thickness;
+    total_shear_3(:,index1) = total_shear_3(:,index1)/wing.webs(index1).thickness;
+    total_shear_4(:,index1) = total_shear_4(:,index1)/wing.webs(index1).thickness;
+    total_shear_5(:,index1) = total_shear_5(:,index1)/wing.webs(index1).thickness;
+    total_shear_6(:,index1) = total_shear_6(:,index1)/wing.webs(index1).thickness;  
+end
 
+
+bending1    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+bending2    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+bending3    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+bending4    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+bending5    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+bending6    = zeros(length_y,(num_spar_caps + sum(num_stringers))); 
+
+% Calculate Bending Stresses at all spar and stringer
+index = 1; 
+for section_num = 1:num_sections % run through sections
+    for stringer_num = 1:(num_stringers(section_num)) % run through webs. 
+        bending1(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,1) + Ixz.*momentx(:,1))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,1) + Ixz.*momentz(:,1))./(Ix*Iz - Ixz^2);
+        bending2(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,2) + Ixz.*momentx(:,2))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,2) + Ixz.*momentz(:,2))./(Ix*Iz - Ixz^2);
+        bending3(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,3) + Ixz.*momentx(:,3))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,3) + Ixz.*momentz(:,3))./(Ix*Iz - Ixz^2);
+        bending4(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,4) + Ixz.*momentx(:,4))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,4) + Ixz.*momentz(:,4))./(Ix*Iz - Ixz^2);
+        bending5(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,5) + Ixz.*momentx(:,5))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,5) + Ixz.*momentz(:,5))./(Ix*Iz - Ixz^2);
+        bending6(:,index) = (wing.sections(section_num).stringers(stringer_num,1) - centroid_x).*(Ix.*momentz(:,6) + Ixz.*momentx(:,6))./(Ix*Iz - Ixz^2) - ...
+                            (wing.sections(section_num).stringers(stringer_num,2) - centroid_z).*(Iz.*momentx(:,6) + Ixz.*momentz(:,6))./(Ix*Iz - Ixz^2);
+        index = index + 1; 
+    end
+end
+
+for spars = 1:num_spar_caps
+    bending1(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,1) + Ixz.*momentx(:,1))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,1) + Ixz.*momentz(:,1))./(Ix*Iz - Ixz^2);
+    bending2(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,2) + Ixz.*momentx(:,2))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,2) + Ixz.*momentz(:,2))./(Ix*Iz - Ixz^2);
+    bending3(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,3) + Ixz.*momentx(:,3))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,3) + Ixz.*momentz(:,3))./(Ix*Iz - Ixz^2);
+    bending4(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,4) + Ixz.*momentx(:,4))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,4) + Ixz.*momentz(:,4))./(Ix*Iz - Ixz^2);
+    bending5(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,5) + Ixz.*momentx(:,5))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,5) + Ixz.*momentz(:,5))./(Ix*Iz - Ixz^2);
+    bending6(:,index) = (wing.spars(spars).position(x_pos) - centroid_x).*(Ix.*momentz(:,6) + Ixz.*momentx(:,6))./(Ix*Iz - Ixz^2) - ...
+                        (wing.spars(spars).position(z_pos) - centroid_z).*(Iz.*momentx(:,6) + Ixz.*momentz(:,6))./(Ix*Iz - Ixz^2);
+    index = index + 1; 
+end
+        
 
 %% Plots
-
-figure; hold on; axis equal; grid on;
-plot(x_chord,upper_surface,'-')
-plot(x_chord,lower_surface,'-')
-plot([wing.spars(1).position(x_pos) wing.spars(4).position(x_pos)],[wing.spars(1).position(z_pos) wing.spars(4).position(z_pos)],'-')
-plot([wing.spars(2).position(x_pos) wing.spars(3).position(x_pos)],[wing.spars(2).position(z_pos) wing.spars(3).position(z_pos)],'-')
-for index = 1:num_sections
-    scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
-end
-for index = 1:num_spar_caps
-    scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
-end
-scatter(centroid_x,centroid_z,'x')
-hold on; xlim([0 1]); ylim([-0.4 0.4]); 
+% figure; hold on; axis equal; grid on;
+% plot(x_chord,upper_surface,'-')
+% plot(x_chord,lower_surface,'-')
+% plot([wing.spars(1).position(x_pos) wing.spars(4).position(x_pos)],[wing.spars(1).position(z_pos) wing.spars(4).position(z_pos)],'-')
+% plot([wing.spars(2).position(x_pos) wing.spars(3).position(x_pos)],[wing.spars(2).position(z_pos) wing.spars(3).position(z_pos)],'-')
+% for index = 1:num_sections
+%     scatter(wing.sections(index).stringers(:,1),wing.sections(index).stringers(:,2))
+% end
+% for index = 1:num_spar_caps
+%     scatter(wing.spars(index).position(x_pos),wing.spars(index).position(z_pos));
+% end
+% scatter(centroid_x,centroid_z,'x')
+% hold on; xlim([0 1]); ylim([-0.4 0.4]); 
